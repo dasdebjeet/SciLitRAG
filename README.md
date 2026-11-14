@@ -1,1 +1,1 @@
-"# SciLitRAG" 
+# SciLitRAG
