@@ -7,8 +7,8 @@ dist/
 build/
 
 # Virtual environments
-.venv/
-venv/
+.venv_wsl/
+venv_wsl/
 env/
 
 # Environment variables and secrets
