@@ -30,6 +30,7 @@ import logging
 import math
 import sys
 from typing import Any
+import gc
 
 import torch
 from sentence_transformers import CrossEncoder
@@ -242,6 +243,33 @@ class CrossEncoderReranker:
         )
 
         return final_results
+
+    
+    def close(self) -> None:
+        """
+        Release the cross-encoder model and associated GPU resources.
+
+        This is important because SciLitRAG runs retrieval and generation
+        sequentially on a GPU with limited VRAM. Keeping the reranker
+        resident while loading Qwen3 can cause CUDA out-of-memory errors.
+        """
+
+        LOGGER.info("Releasing cross-encoder reranker...")
+
+        # Drop the model reference so Python can reclaim its memory.
+        if getattr(self, "model", None) is not None:
+            del self.model
+            self.model = None
+
+        # Run garbage collection before clearing unused CUDA allocations.
+        gc.collect()
+
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize(0)
+
+        LOGGER.info("Cross-encoder resources released.")
+
 
 
 # ---------------------------------------------------------------------------
