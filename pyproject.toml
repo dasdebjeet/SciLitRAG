@@ -29,6 +29,7 @@ dependencies = [
     "pymupdf==2.1",
     "pymupdf-layout==2.1",
     "pymupdf4llm==2.1",
+    "pypdf>=7.1.0",
     "python-dotenv==1.2.4",
     "pyyaml==6.0.3",
     "qdrant-client>=1.20.0",

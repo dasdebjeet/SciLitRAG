@@ -1,7 +1,9 @@
+accelerate==1.15.0
 annotated-doc==0.0.6
 annotated-types==0.8.0
 anyio==4.16.0
 arxiv==4.0.2
+bitsandbytes==0.50.2
 certifi==2026.10.23
 charset-normalizer==3.5.2
 click==8.5.1
@@ -61,6 +63,7 @@ pygments==2.21.0
 pymupdf==2.1
 pymupdf-layout==2.1
 pymupdf4llm==2.1
+pypdf==7.1.0
 python-dotenv==1.2.4
 pyyaml==6.0.3
 qdrant-client==1.20.0
