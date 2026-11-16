@@ -48,7 +48,7 @@ from dense_retriever import DenseRetriever
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CHUNKS_PATH = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
 
-DEFAULT_QDRANT_URL = "http://localhost:6333"
+DEFAULT_QDRANT_URL = "http://localhost:16333"
 DEFAULT_COLLECTION = "scilit_rag"
 DEFAULT_MODEL = "BAAI/bge-m3"
 

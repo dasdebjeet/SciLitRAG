@@ -19,7 +19,7 @@ from sentence_transformers import SentenceTransformer
 # Configuration
 # ---------------------------------------------------------------------------
 
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = "http://localhost:16333"
 COLLECTION_NAME = "scilit_rag"
 VECTOR_NAME = "dense"
 

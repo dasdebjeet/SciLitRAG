@@ -10,7 +10,7 @@ Responsibilities:
       deleting or recreating existing data.
 
 Assumptions:
-    - Qdrant is accessible at http://localhost:6333.
+    - Qdrant is accessible at http://localhost:16333.
     - BGE-M3 embeddings have 1,024 dimensions.
     - Cosine similarity is used for dense retrieval.
 """
@@ -25,7 +25,7 @@ from qdrant_client import QdrantClient, models
 # Configuration
 # ---------------------------------------------------------------------
 
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = "http://localhost:16333"
 COLLECTION_NAME = "scilit_rag"
 
 VECTOR_NAME = "dense"

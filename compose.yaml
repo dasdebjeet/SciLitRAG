@@ -10,11 +10,8 @@ services:
     restart: unless-stopped
 
     ports:
-      # REST API and dashboard.
-      - "6333:6333"
-
-      # gRPC API.
-      - "6334:6334"
+      - "16333:6333"
+      - "16334:6334"
 
     volumes:
       - qdrant_storage:/qdrant/storage

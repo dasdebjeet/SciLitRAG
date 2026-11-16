@@ -43,7 +43,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CHUNKS_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
 DEFAULT_EMBEDDINGS_PATH = PROJECT_ROOT / "data/processed/embeddings.jsonl"
 
-QDRANT_URL = "http://localhost:6333"
+QDRANT_URL = "http://localhost:16333"
 COLLECTION_NAME = "scilit_rag"
 VECTOR_NAME = "dense"
 

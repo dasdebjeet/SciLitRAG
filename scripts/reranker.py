@@ -327,7 +327,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--qdrant-url",
         type=str,
-        default="http://localhost:6333",
+        default="http://localhost:16333",
         help="Qdrant service URL.",
     )
 

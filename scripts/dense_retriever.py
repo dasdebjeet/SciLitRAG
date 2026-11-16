@@ -41,7 +41,7 @@ from sentence_transformers import SentenceTransformer
 # Configuration
 # ---------------------------------------------------------------------------
 
-DEFAULT_QDRANT_URL = "http://localhost:6333"
+DEFAULT_QDRANT_URL = "http://localhost:16333"
 DEFAULT_COLLECTION = "scilit_rag"
 DEFAULT_MODEL = "BAAI/bge-m3"
 
