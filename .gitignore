@@ -18,13 +18,23 @@ env/
 .env.*
 !.env.example
 
-# Data
+# Data: generated research corpus
 data/raw/*
 data/processed/*
 data/metadata/*
+
+# Preserve directory placeholders
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/metadata/.gitkeep
+
+# Evaluation benchmark: keep questions under version control
+data/evaluation/*
+!data/evaluation/questions.jsonl
+!data/evaluation/.gitkeep
+
+# Backups
+*.bak
 
 # Notebooks
 .ipynb_checkpoints/
@@ -44,8 +54,3 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Data backups and generated artifacts
-*.bak
-data/evaluation/*
-!data/evaluation/.gitkeep
