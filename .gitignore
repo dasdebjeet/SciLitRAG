@@ -7,8 +7,10 @@ dist/
 build/
 
 # Virtual environments
-.venv_wsl/
-venv_wsl/
+.venv/
+.venv-*/
+venv/
+venv-*/
 env/
 
 # Environment variables and secrets
@@ -42,3 +44,8 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Data backups and generated artifacts
+*.bak
+data/evaluation/*
+!data/evaluation/.gitkeep
