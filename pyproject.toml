@@ -8,7 +8,10 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "accelerate>=1.16.0",
     "arxiv==4.0.2",
+    "bitsandbytes>=0.46.1",
+    "fastapi>=0.163.1",
     "numpy==2.5.4",
     "pymupdf==2.1",
     "qdrant-client>=1.20.0",
@@ -16,6 +19,7 @@ dependencies = [
     "sentence-transformers>=6.3.0",
     "torch>=2.15.0",
     "transformers>=5.23.0",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [project.scripts]
@@ -29,3 +33,9 @@ scilitrag-generate = "scilitrag.generation.generator:main"
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+]
