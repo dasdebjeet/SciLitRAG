@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🔬 SciLitRAG
+# SciLitRAG
 
 ### A research-paper assistant powered by hybrid retrieval, cross-encoder reranking, and locally hosted language models
 
@@ -18,40 +18,40 @@
   <img src="https://img.shields.io/badge/status-active%20development-orange?style=flat-square" alt="Status" />
 </p>
 
-[Features](#-key-features) •
-[Architecture](#-architecture) •
-[Quick Start](#-quick-start) •
-[Usage](#-usage) •
-[Evaluation](#-evaluation) •
-[Roadmap](#-roadmap)
+[Features](#key-features) •
+[Architecture](#architecture) •
+[Quick Start](#quick-start) •
+[Usage](#usage) •
+[Evaluation](#evaluation) •
+[Roadmap](#roadmap)
 
 </div>
 
 ---
 
-## 📖 Overview
+## Overview
 
 **SciLitRAG** is a retrieval-augmented generation (RAG) system that helps researchers search, explore, and synthesize information from scientific literature.
 
 It retrieves relevant passages from research papers, reranks them by relevance, and generates answers **grounded in retrieved evidence, with source attribution**.
 
-## ✨ Key Features
+## Key Features
 
-| | Feature | Description |
-|:-:|---|---|
-| 📥 | **Corpus ingestion** | Fetch and process research papers from arXiv |
-| 🧠 | **Semantic search** | Retrieve relevant passages using dense vector embeddings |
-| 🔑 | **Keyword search** | Capture exact terminology and technical keywords with BM25 |
-| 🔀 | **Hybrid retrieval** | Combine keyword and semantic retrieval via Reciprocal Rank Fusion (RRF) |
-| 🎯 | **Cross-encoder reranking** | Improve passage relevance before generation |
-| 📝 | **Evidence-grounded generation** | Generate research answers with a locally hosted language model |
-| 📊 | **Evaluation suite** | Benchmark retrieval, context selection, and answer quality |
+| Feature | Description |
+|---|---|
+| **Corpus ingestion** | Fetch and process research papers from arXiv |
+| **Semantic search** | Retrieve relevant passages using dense vector embeddings |
+| **Keyword search** | Capture exact terminology and technical keywords with BM25 |
+| **Hybrid retrieval** | Combine keyword and semantic retrieval via Reciprocal Rank Fusion (RRF) |
+| **Cross-encoder reranking** | Improve passage relevance before generation |
+| **Evidence-grounded generation** | Generate research answers with a locally hosted language model |
+| **Evaluation suite** | Benchmark retrieval, context selection, and answer quality |
 
-## 🏗 Architecture
+## Architecture
 
 ```mermaid
 flowchart TD
-    A["📄 Research Papers (arXiv)"] --> B["PDF Extraction"]
+    A["Research Papers (arXiv)"] --> B["PDF Extraction"]
     B --> C["Text Chunking"]
     C --> D["BM25 Index"]
     C --> E["Dense Embeddings"]
@@ -61,8 +61,8 @@ flowchart TD
     G --> H["Reciprocal Rank Fusion"]
     H --> I["Cross-Encoder Reranking"]
     I --> J["Context Builder"]
-    J --> K["🤖 Local LLM (Qwen3-14B)"]
-    K --> L["✅ Evidence-Grounded Answer"]
+    J --> K["Local LLM (Qwen3-14B)"]
+    K --> L["Evidence-Grounded Answer"]
 
     style A fill:#e8f0fe,stroke:#4285f4,color:#000
     style F fill:#fde8ec,stroke:#dc244c,color:#000
@@ -70,7 +70,7 @@ flowchart TD
     style L fill:#e6f4ea,stroke:#34a853,color:#000
 ```
 
-## 🧰 Technology Stack
+## Technology Stack
 
 | Component | Technology |
 |---|---|
@@ -86,7 +86,7 @@ flowchart TD
 | **Deep learning** | PyTorch, Transformers |
 | **GPU acceleration** | CUDA |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -135,7 +135,7 @@ uv run python scripts/ingestion/ingest_qdrant.py
 > [!NOTE]
 > The corpus, generated embeddings, Qdrant collection, and local language-model weights must be prepared or made available separately. `uv sync` installs Python dependencies; it does **not** download the complete research corpus or model weights.
 
-## 💡 Usage
+## Usage
 
 Ask a research question using the complete retrieval and generation pipeline:
 
@@ -144,7 +144,7 @@ uv run scilitrag-answer --query "How do reversible neural networks improve image
 ```
 
 <details>
-<summary><b>⚙️ Optional parameters</b></summary>
+<summary><b>Optional parameters</b></summary>
 
 <br>
 
@@ -161,7 +161,7 @@ uv run scilitrag-answer \
 </details>
 
 <details>
-<summary><b>🧩 Individual retrieval components</b></summary>
+<summary><b>Individual retrieval components</b></summary>
 
 <br>
 
@@ -174,7 +174,7 @@ uv run scilitrag-rerank --help
 
 </details>
 
-## 📊 Evaluation
+## Evaluation
 
 SciLitRAG has been evaluated on a manually verified benchmark of **15 research questions** (13 answerable, 2 unanswerable).
 
@@ -201,7 +201,7 @@ An adaptive context-selection strategy was compared against a fixed top-10 conte
 | Avg. context tokens | **3,502** | 4,711 |
 | Avg. selected passages | **7.54** | 10 |
 
-➡️ Approximately **25.7% fewer context tokens**.
+Approximately **25.7% fewer context tokens**.
 
 > [!NOTE]
 > These results reflect the current benchmark and do not establish adaptive selection as universally optimal.
@@ -210,7 +210,7 @@ An adaptive context-selection strategy was compared against a fixed top-10 conte
 
 An initial manual review covered eight generated answers across four questions and two context-selection policies. Outputs were generally sound, but broader evaluation is needed before drawing strong conclusions.
 
-## 🗂 Project Structure
+## Project Structure
 
 <details>
 <summary><b>Show directory tree</b></summary>
@@ -277,14 +277,14 @@ SciLitRAG/
 | `scripts/` | Executable workflows, evaluation tools, utilities, and diagnostics |
 | `data/` | Research corpus and evaluation artifacts |
 
-## ⚠️ Current Limitations
+## Current Limitations
 
 - The benchmark is relatively small and requires broader evaluation.
 - Retrieval quality varies across individual research questions.
 - The system uses a local language model, so inference performance is hardware-dependent.
 - The API and interactive user interface are planned extensions.
 
-## 🗺 Roadmap
+## Roadmap
 
 - [ ] FastAPI backend for serving the RAG pipeline
 - [ ] React-based research assistant interface
@@ -293,7 +293,7 @@ SciLitRAG/
 - [ ] Expanded retrieval and answer-quality benchmarks
 - [ ] Improved observability and production deployment
 
-## 📌 Project Status
+## Project Status
 
 The core **ingestion, hybrid retrieval, reranking, generation, and initial evaluation** workflows are implemented. The project is now transitioning toward a service-oriented backend and an interactive research interface.
 
