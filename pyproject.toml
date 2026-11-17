@@ -39,3 +39,8 @@ dev = [
     "httpx>=0.28.1",
     "pytest>=9.2.0",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests that exercise the real RAG pipeline and external services",
+]
