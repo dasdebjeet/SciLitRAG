@@ -17,10 +17,11 @@ Expected Qdrant collection:
     - Distance: Cosine
 
 The script does not create, delete, or recreate collections. Run
-scripts/setup_qdrant.py first if the collection has not been initialized.
+scripts/utilities/setup_qdrant.py first if the collection has not been initialized.
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import PROCESSED_DATA_DIR
 
 import argparse
 import hashlib
@@ -38,10 +39,10 @@ from qdrant_client import QdrantClient, models
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_CHUNKS_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
-DEFAULT_EMBEDDINGS_PATH = PROJECT_ROOT / "data/processed/embeddings.jsonl"
+
+DEFAULT_CHUNKS_PATH = PROCESSED_DATA_DIR / "chunks.jsonl"
+DEFAULT_EMBEDDINGS_PATH = PROCESSED_DATA_DIR / "embeddings.jsonl"
 
 QDRANT_URL = "http://localhost:16333"
 COLLECTION_NAME = "scilit_rag"
@@ -351,7 +352,7 @@ def verify_collection(client: QdrantClient) -> None:
     if not client.collection_exists(COLLECTION_NAME):
         raise ValueError(
             f"Collection '{COLLECTION_NAME}' does not exist. "
-            "Run scripts/setup_qdrant.py first."
+            "Run scripts/utilities/setup_qdrant.py first."
         )
 
     collection = client.get_collection(COLLECTION_NAME)

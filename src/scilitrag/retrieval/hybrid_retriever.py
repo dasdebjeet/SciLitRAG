@@ -37,16 +37,15 @@ from typing import Any
 
 import torch
 
-from bm25_retriever import BM25Retriever, load_chunks
-from dense_retriever import DenseRetriever
+from scilitrag.core.paths import DEFAULT_CHUNKS_PATH
+from scilitrag.retrieval.bm25_retriever import BM25Retriever, load_chunks
+from scilitrag.retrieval.dense_retriever import DenseRetriever
 
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CHUNKS_PATH = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
 
 DEFAULT_QDRANT_URL = "http://localhost:16333"
 DEFAULT_COLLECTION = "scilit_rag"

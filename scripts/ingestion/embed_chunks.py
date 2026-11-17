@@ -28,6 +28,7 @@ Important:
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import PROCESSED_DATA_DIR
 
 # ---------------------------------------------------------------------------
 # Standard library imports
@@ -57,10 +58,10 @@ from sentence_transformers import SentenceTransformer
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_INPUT = PROJECT_ROOT / "data/processed/chunks.jsonl"
-DEFAULT_OUTPUT = PROJECT_ROOT / "data/processed/embeddings.jsonl"
+
+DEFAULT_INPUT = PROCESSED_DATA_DIR / "chunks.jsonl"
+DEFAULT_OUTPUT = PROCESSED_DATA_DIR / "embeddings.jsonl"
 
 DEFAULT_MODEL = "BAAI/bge-m3"
 DEFAULT_DEVICE = "cuda"

@@ -1,2 +1,1 @@
-def main() -> None:
-    print("Hello from scilitrag!")
+"""SciLitRAG: a research-paper retrieval-augmented generation system."""

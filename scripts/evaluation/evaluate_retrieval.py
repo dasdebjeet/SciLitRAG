@@ -27,10 +27,11 @@ Resource management:
     the embedding model and cross-encoder resident on the GPU together.
 
 Run:
-    python scripts/evaluate_retrieval.py
+    python scripts/evaluation/evaluate_retrieval.py
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import EVALUATION_DIR
 
 import argparse
 import gc
@@ -44,21 +45,21 @@ from typing import Any
 
 import torch
 
-from hybrid_retriever import HybridRetriever
-from reranker import CrossEncoderReranker
+from scilitrag.retrieval.hybrid_retriever import HybridRetriever
+from scilitrag.retrieval.reranker import CrossEncoderReranker
 
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 DEFAULT_BENCHMARK = (
-    PROJECT_ROOT / "data" / "evaluation" / "questions.jsonl"
+    EVALUATION_DIR / "questions.jsonl"
 )
 
-DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "data" / "evaluation"
+DEFAULT_OUTPUT_DIR = EVALUATION_DIR
 
 DEFAULT_RETRIEVAL_K = 20
 DEFAULT_RERANKER_TOP_K = 10

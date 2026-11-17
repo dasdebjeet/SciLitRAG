@@ -35,7 +35,6 @@ import gc
 import torch
 from sentence_transformers import CrossEncoder
 
-from hybrid_retriever import HybridRetriever
 
 
 # ---------------------------------------------------------------------------
@@ -467,6 +466,8 @@ def main() -> int:
     if args.device == "cuda" and not torch.cuda.is_available():
         LOGGER.error("CUDA was requested but is unavailable.")
         return 1
+
+    from scilitrag.retrieval.hybrid_retriever import HybridRetriever
 
     hybrid: HybridRetriever | None = None
 

@@ -22,6 +22,7 @@ Limitations:
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import PROCESSED_DATA_DIR
 
 import argparse
 import hashlib
@@ -39,10 +40,10 @@ from transformers import AutoTokenizer
 # Project configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-DEFAULT_INPUT = PROJECT_ROOT / "data" / "processed" / "pages.jsonl"
-DEFAULT_OUTPUT = PROJECT_ROOT / "data" / "processed" / "chunks.jsonl"
+
+DEFAULT_INPUT = PROCESSED_DATA_DIR / "pages.jsonl"
+DEFAULT_OUTPUT = PROCESSED_DATA_DIR / "chunks.jsonl"
 
 DEFAULT_MODEL = "BAAI/bge-m3"
 DEFAULT_CHUNK_SIZE = 500

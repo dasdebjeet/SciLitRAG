@@ -34,10 +34,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from context_builder import AssembledContext, ContextBuilder, Evidence
-from generator import QwenGenerator
-from hybrid_retriever import HybridRetriever
-from reranker import CrossEncoderReranker
+from scilitrag.generation.generator import QwenGenerator
+from scilitrag.pipeline.context_builder import AssembledContext, ContextBuilder, Evidence
+from scilitrag.retrieval.hybrid_retriever import HybridRetriever
+from scilitrag.retrieval.reranker import CrossEncoderReranker
 
 
 # ---------------------------------------------------------------------------

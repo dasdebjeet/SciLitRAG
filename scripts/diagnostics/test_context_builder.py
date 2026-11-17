@@ -9,9 +9,9 @@ with the corresponding paper and page metadata.
 
 import logging
 
-from context_builder import ContextBuilder
-from hybrid_retriever import HybridRetriever
-from reranker import CrossEncoderReranker
+from scilitrag.pipeline.context_builder import ContextBuilder
+from scilitrag.retrieval.hybrid_retriever import HybridRetriever
+from scilitrag.retrieval.reranker import CrossEncoderReranker
 
 
 logging.basicConfig(

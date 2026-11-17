@@ -13,6 +13,7 @@ No retrieval, embedding, or reranking models are loaded.
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import EVALUATION_DIR
 
 import json
 import logging
@@ -23,25 +24,25 @@ from typing import Any
 
 import torch
 
-from answer_pipeline import (
+from scilitrag.pipeline.answer_pipeline import (
     SYSTEM_PROMPT,
     build_user_prompt,
     resolve_citations,
 )
-from context_builder import ContextBuilder
-from generator import QwenGenerator
+from scilitrag.pipeline.context_builder import ContextBuilder
+from scilitrag.generation.generator import QwenGenerator
 
 
 LOGGER = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 INPUT_REPORT = (
     PROJECT_ROOT
     / "data/evaluation/retrieval_results_full_diagnostics.json"
 )
 
-OUTPUT_DIR = PROJECT_ROOT / "data/evaluation"
+OUTPUT_DIR = EVALUATION_DIR
 
 QUESTION_IDS = ("q003", "q004", "q008", "q013")
 

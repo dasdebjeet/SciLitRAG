@@ -1,3 +1,4 @@
+
 """
 Generate draft evaluation questions for the SciLitRAG benchmark.
 
@@ -23,6 +24,7 @@ Important:
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import PROJECT_ROOT, EVALUATION_DIR, PROCESSED_DATA_DIR, METADATA_DIR
 
 import argparse
 import json
@@ -33,18 +35,18 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from generator import QwenGenerator
+from scilitrag.generation.generator import QwenGenerator
 
 
 # ---------------------------------------------------------------------
 # Project paths and supported question categories
 # ---------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-EVALUATION_DIR = PROJECT_ROOT / "data/evaluation"
 
-CHUNKS_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
-PAPERS_PATH = PROJECT_ROOT / "data/metadata/papers.json"
+EVALUATION_DIR = EVALUATION_DIR
+
+CHUNKS_PATH = PROCESSED_DATA_DIR / "chunks.jsonl"
+PAPERS_PATH = METADATA_DIR / "papers.json"
 QUESTIONS_PATH = EVALUATION_DIR / "questions.jsonl"
 
 DEFAULT_OUTPUT_PATH = EVALUATION_DIR / "candidates.jsonl"

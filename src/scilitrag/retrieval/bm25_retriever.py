@@ -30,14 +30,13 @@ from typing import Any
 
 from rank_bm25 import BM25Okapi
 
+from scilitrag.core.paths import DEFAULT_CHUNKS_PATH
+
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-
-DEFAULT_CHUNKS_PATH = PROJECT_ROOT / "data/processed/chunks.jsonl"
 
 DEFAULT_TOP_K = 5
 

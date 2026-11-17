@@ -18,6 +18,7 @@ The experiment uses the Qwen3-14B tokenizer and the production
 """
 
 from __future__ import annotations
+from scilitrag.core.paths import EVALUATION_DIR
 
 import json
 import logging
@@ -25,20 +26,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from context_builder import ContextBuilder
+from scilitrag.pipeline.context_builder import ContextBuilder
 from transformers import AutoTokenizer
 
 
 LOGGER = logging.getLogger(__name__)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 DEFAULT_INPUT = (
     PROJECT_ROOT
     / "data/evaluation/retrieval_results_full_diagnostics.json"
 )
 
-OUTPUT_DIR = PROJECT_ROOT / "data/evaluation"
+OUTPUT_DIR = EVALUATION_DIR
 
 # Each tuple represents (reranking depth, maximum chunks per paper).
 EXPERIMENTS = (
