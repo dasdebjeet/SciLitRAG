@@ -6,7 +6,8 @@ This module orchestrates the existing retrieval, reranking, context assembly,
 and generation components without duplicating their responsibilities.
 
 Pipeline:
-    1. Retrieve candidates using BM25 + dense retrieval + RRF.
+    0. Route simple conversational questions directly to generation.
+    1. Retrieve research candidates using BM25 + dense retrieval + RRF.
     2. Rerank candidates using a cross-encoder.
     3. Release retrieval and reranking GPU resources.
     4. Load the Qwen generator.
@@ -57,6 +58,7 @@ LOGGER = logging.getLogger(__name__)
 CITATION_PATTERN = re.compile(r"\[(E\d+)\]")
 
 
+
 SYSTEM_PROMPT = """
 You are SciLitRAG, an AI research assistant specializing in scientific
 literature analysis.
@@ -87,9 +89,112 @@ STRICT EVIDENCE RULES:
    comparison and avoid treating different experimental settings as directly
    equivalent.
 
+OUTPUT FORMATTING RULES:
+
+1. Write answers using clean, readable Markdown.
+
+2. Use descriptive headings when they improve the organization of the answer.
+   Use bullet points or numbered lists for related items.
+
+3. Format mathematical expressions using standard LaTeX syntax.
+
+4. Use single dollar signs for inline mathematics:
+   Example: $R_{cl}$, $TP + FN$, and $\alpha^2$.
+
+5. Use double dollar signs for standalone mathematical equations:
+   Example:
+   $$R_{cl} = \frac{TP_{cl}}{TP_{cl} + FN_{cl}}$$
+
+6. Write mathematical subscripts and superscripts using standard LaTeX:
+   Correct: $TP_{cl}$, $x^2$
+   Incorrect: $TP\\_{cl}$, $x\\^2$
+
+7. Use valid LaTeX commands for mathematical symbols and operators.
+   For example: $\\in$, $\\sum$, $\\frac{}{}$, and $\\sqrt{}$.
+
+8. Never wrap mathematical expressions in code blocks or use backticks
+   around LaTeX expressions.
+
+9. Do not use LaTeX for ordinary words, variable explanations, or prose.
+   Keep explanations outside mathematical delimiters.
+
+10. After presenting an equation, explain the meaning of its variables
+    whenever doing so helps the reader understand the expression.
+
+11. Do not output escaped Markdown syntax such as \\*\\*bold\\*\\*.
+    Use standard Markdown formatting such as **bold**.
+
 Write a clear, structured, technically accurate answer.
 """
 
+
+GENERAL_CONVERSATION_SYSTEM_PROMPT = """
+You are SciLitRAG, an AI research assistant.
+
+Your purpose is to help users explore and understand scientific
+literature, research papers, scientific concepts, and research findings.
+
+GENERAL CONVERSATION RULES:
+
+1. When asked who you are, introduce yourself as SciLitRAG.
+
+2. When asked what this chat is for, explain that it is a research
+   assistant that helps users understand scientific literature,
+   ask questions about research papers, and explore research findings.
+
+3. Respond naturally to greetings, questions about your identity,
+   your purpose, and your capabilities.
+
+4. Do not refer to retrieved research papers or claim that your
+   identity or purpose must be established from research evidence.
+
+5. Do not generate paper citations or evidence identifiers such as
+   [E1] or [E2].
+
+6. Do not invent capabilities. Explain your functionality honestly.
+
+7. Keep responses concise, friendly, and informative.
+"""
+
+
+# Recognize only clear, standalone conversational questions that do not
+# require scientific literature retrieval. Full matches reduce the chance
+# that a research question containing a phrase such as "what can you do"
+# is accidentally routed away from the RAG pipeline.
+GENERAL_CONVERSATION_PATTERNS = (
+    re.compile(
+        r"(?:hi|hello|hey|good morning|good afternoon|good evening)[!. ]*",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:who are you|what are you|tell me about yourself)"
+        r"(?:[,\s]+and\s+(?:what is|what's)\s+"
+        r"(?:this chat|this app|this platform|this tool)\s+for)?[?.! ]*",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:what is|what's)\s+"
+        r"(?:this chat|this app|this platform|this tool)\s+"
+        r"(?:for|about)[?.! ]*",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"(?:what can you do|how can you help|"
+        r"what is your purpose|what's your purpose|"
+        r"what are your capabilities)[?.! ]*",
+        re.IGNORECASE,
+    ),
+)
+
+
+def is_general_conversation(question: str) -> bool:
+    """Return whether a complete question is clearly conversational."""
+
+    normalized_question = question.strip()
+    return any(
+        pattern.fullmatch(normalized_question)
+        for pattern in GENERAL_CONVERSATION_PATTERNS
+    )
 
 # ---------------------------------------------------------------------------
 # Result Model
@@ -249,16 +354,53 @@ class AnswerPipeline:
         question: str,
         arxiv_id: str | None = None,
     ) -> AnswerResult:
-        """Generate a grounded answer for a research question.
+        """Answer a question using direct chat or the grounded RAG pipeline.
 
-        Retrieval and reranking models are explicitly released before the
-        generator is initialized to reduce peak GPU memory consumption.
+        Clear general-conversation questions bypass retrieval and use the
+        generator directly. Research questions retain the existing retrieval,
+        reranking, context assembly, and citation-validation workflow.
+        Retrieval and reranking models are released before Qwen is initialized
+        to reduce peak GPU memory consumption.
         """
 
         if not question or not question.strip():
             raise ValueError("Question cannot be empty.")
 
         question = question.strip()
+
+        # ---------------------------------------------------------------
+        # Stage 0: General conversation without research retrieval
+        # ---------------------------------------------------------------
+
+        # An explicit arXiv filter indicates that the caller wants a
+        # paper-scoped research answer, so preserve the normal RAG path.
+        if arxiv_id is None and is_general_conversation(question):
+            LOGGER.info(
+                "General conversation detected. Skipping research retrieval."
+            )
+
+            generator: QwenGenerator | None = None
+
+            try:
+                generator = QwenGenerator()
+
+                generated_answer = generator.generate(
+                    prompt=question,
+                    system_prompt=GENERAL_CONVERSATION_SYSTEM_PROMPT,
+                    max_new_tokens=min(self.max_new_tokens, 400),
+                )
+
+                return AnswerResult(
+                    question=question,
+                    answer=generated_answer,
+                    citations=[],
+                    context_token_count=0,
+                )
+
+            finally:
+                # Release Qwen's GPU resources before returning to the API.
+                if generator is not None:
+                    generator.close()
 
         # ---------------------------------------------------------------
         # Stage 1: Hybrid retrieval and cross-encoder reranking
