@@ -1,0 +1,180 @@
+
+/*
+ * Conversation history styles.
+ *
+ * Uses shared SciLitRAG design tokens to maintain visual consistency
+ * with the Paper Library and automatically support both themes.
+ */
+
+/* Main conversation history workspace. */
+.conversation-history {
+  width: 100%;
+  max-width: 1100px;
+  margin: 34px auto 0;
+}
+
+/* History heading and description. */
+.conversation-history-header {
+  margin-bottom: 30px;
+}
+
+.conversation-history-header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 23px;
+  font-weight: 650;
+}
+
+.conversation-history-header p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+/* Date-based conversation sections. */
+.conversation-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.conversation-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.conversation-group-title {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+/* List of conversations within a date section. */
+.conversation-items {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+/* Individual conversation entry. */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px 18px;
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.conversation-item:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary-border);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.conversation-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.conversation-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.conversation-item-title {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-item-meta {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.conversation-item-date {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* Empty history state. */
+.conversation-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  padding: 32px 20px;
+
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+
+  text-align: center;
+}
+
+.conversation-empty-state h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.conversation-empty-state p {
+  max-width: 380px;
+  margin: 9px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Compact layout for phones. */
+@media (max-width: 560px) {
+  .conversation-history {
+    margin-top: 22px;
+  }
+
+  .conversation-history-header {
+    margin-bottom: 24px;
+  }
+
+  .conversation-item {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .conversation-item-title {
+    font-size: 13px;
+  }
+
+  .conversation-item-date {
+    font-size: 11px;
+  }
+}

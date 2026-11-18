@@ -16,12 +16,14 @@ import {
 interface SidebarProps {
   onNewChat: () => void;
   onShowLibrary: () => void;
-  activeView: "chat" | "library";
+  onShowConversations: () => void;
+  activeView: "chat" | "library" | "conversations";
 }
 
 function Sidebar({
   onNewChat,
   onShowLibrary,
+  onShowConversations,
   activeView,
 }: SidebarProps) {
   return (
@@ -42,10 +44,15 @@ function Sidebar({
 
         <button
           type="button"
-          className="navigation-item navigation-placeholder"
-          disabled
-          aria-label="Conversations — coming soon"
-          data-tooltip="Conversations · Coming soon"
+          className={`navigation-item ${
+            activeView === "conversations" ? "active" : ""
+          }`}
+          onClick={onShowConversations}
+          aria-label="Conversations"
+          aria-current={
+            activeView === "conversations" ? "page" : undefined
+          }
+          data-tooltip="Conversations"
         >
           <MessagesSquare size={20} strokeWidth={1.8} aria-hidden="true" />
         </button>

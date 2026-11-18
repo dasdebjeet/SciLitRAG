@@ -9,15 +9,22 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 // KaTeX styles are required to display formatted mathematical expressions.
 import "katex/dist/katex.min.css";
 
+import ConversationList from "./components/conversations/ConversationList";
 import Sidebar from "./components/Sidebar";
 import PaperLibrary from "./components/PaperLibrary";
+
+import { useConversations } from "./hooks/useConversations";
+import type {
+  AssistantMessage,
+  UserMessage,
+} from "./types/conversation";
 
 import { askQuestion } from "./services/api";
 import type { Citation, Paper } from "./types/api";
 
 import "./App.css";
 
-type AppView = "chat" | "library";
+type AppView = "chat" | "library" | "conversations";
 
 /**
  * Create a compact, deterministic preview of a retrieved source passage.
@@ -60,6 +67,7 @@ function getCitationExcerpt(text: string, maxLength = 360): string {
 function formatAnswerCitations(
   markdown: string,
   sourceCitations: Citation[],
+  sourcePrefix: string,
 ): string {
   const availableSources = new Set(
     sourceCitations.map(({ evidence_id }) =>
@@ -70,25 +78,162 @@ function formatAnswerCitations(
   return markdown.replace(/\[(?:E)?(\d+)\]/gi, (_match, rawId: string) => {
     const number = String(Number(rawId));
 
-    // Link citations only when the corresponding source card exists.
+    // Link only citations backed by this response's own source cards.
     return availableSources.has(number)
-      ? `[[${number}]](#source-${number})`
+      ? `[[${number}]](#${sourcePrefix}-${number})`
       : `[${number}]`;
   });
+}
+
+/**
+ * Generate unique IDs for persisted conversation messages.
+ *
+ * The application runs in a browser, where crypto.randomUUID() is available
+ * in secure contexts such as localhost and HTTPS.
+ */
+function generateMessageId(): string {
+  return crypto.randomUUID();
+}
+
+/**
+ * Render one assistant response together with its own research sources.
+ *
+ * Each response gets a unique source ID prefix because evidence numbers
+ * can repeat across different questions in the same conversation.
+ */
+function AssistantResponse({
+  message,
+}: {
+  message: AssistantMessage;
+}) {
+  const sourcePrefix = `source-${message.id}`;
+
+  return (
+    <section className="answer-container" aria-label="Research response">
+      <div className="message-timestamp">
+        {new Date(message.createdAt).toLocaleString()}
+      </div>
+
+      <div className="answer-layout">
+        <main className="answer-main">
+          <div className="answer-card">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+            >
+              {formatAnswerCitations(
+                message.content,
+                message.citations,
+                sourcePrefix,
+              )}
+            </ReactMarkdown>
+          </div>
+        </main>
+
+        <aside className="citations-section" aria-label="Sources">
+          <div className="sources-heading">
+            <h3>Sources</h3>
+            <span>{message.citations.length}</span>
+          </div>
+
+          {message.citations.length === 0 ? (
+            <p className="sources-empty">
+              No source passages were returned.
+            </p>
+          ) : (
+            <div className="citations-list">
+              {message.citations.map((citation) => {
+                const evidenceNumber = citation.evidence_id.replace(/^E/i, "");
+
+                return (
+                  <article
+                    id={`${sourcePrefix}-${evidenceNumber}`}
+                    className="citation-card"
+                    key={citation.evidence_id}
+                  >
+                    <div className="citation-title-row">
+                      <strong className="citation-number">
+                        [{evidenceNumber}]
+                      </strong>
+                      <h4>{citation.title}</h4>
+                    </div>
+
+                    <div className="citation-metadata">
+                      <span>arXiv: {citation.arxiv_id}</span>
+                      <span
+                        className="citation-metadata-separator"
+                        aria-hidden="true"
+                      >
+                        ·
+                      </span>
+                      <span>Page {citation.page_number}</span>
+                    </div>
+
+                    <a
+                      className="citation-paper-link"
+                      href={`https://arxiv.org/abs/${encodeURIComponent(citation.arxiv_id)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open paper <span aria-hidden="true">↗</span>
+                    </a>
+
+                    <p className="citation-text">
+                      {getCitationExcerpt(citation.text)}
+                    </p>
+
+                    <details className="citation-original">
+                      <summary>Show original passage</summary>
+                      <p>{citation.text}</p>
+                    </details>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
 }
 
 function App() {
   const [currentView, setCurrentView] = useState<AppView>("chat");
 
-  // Stores the paper selected for a paper-scoped research session.
-  const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
+  // Centralized conversation state and browser persistence.
+  const {
+    conversations,
+    activeConversationId,
+    activeConversation,
+    storageError,
+    createConversation,
+    selectConversation,
+    addMessage,
+    updatePaperScope,
+  } = useConversations();
+
+  /**
+   * Restore the paper context from the active conversation.
+   *
+   * Only the paper ID and title are required by the current chat interface.
+   * The conversation stores these values as a metadata snapshot.
+   */
+  const selectedPaper =
+    activeConversation?.arxivId
+      ? {
+          arxiv_id: activeConversation.arxivId,
+          title: activeConversation.paperTitle ?? "Selected paper",
+        }
+      : null;
 
   // Stores the question currently being entered in the editable prompt.
   const [question, setQuestion] = useState("");
   const questionEditorRef = useRef<HTMLDivElement>(null);
 
-  // Synchronize the editable DOM surface when the question is reset
-  // programmatically, such as when starting a new chat.
+  /**
+   * Synchronize the editable DOM surface when the question is reset
+   * programmatically, such as when starting a new conversation.
+   */
   useEffect(() => {
     const editor = questionEditorRef.current;
 
@@ -97,52 +242,82 @@ function App() {
     }
   }, [question]);
 
-  // Stores the answer returned by the RAG backend.
-  const [answer, setAnswer] = useState("");
-
-  // Stores the evidence passages supporting the answer.
-  const [citations, setCitations] = useState<Citation[]>([]);
-
   // Tracks whether a request is currently being processed.
   const [isLoading, setIsLoading] = useState(false);
 
   // Stores a user-friendly error message when a request fails.
   const [error, setError] = useState("");
 
-  // Reset the current session and return to unrestricted research.
+  /**
+   * Create a fresh unrestricted conversation.
+   *
+   * The conversation hook handles its ID, timestamps, and persistence.
+   */
   function handleNewChat() {
+    createConversation();
+
     setQuestion("");
-    setAnswer("");
-    setCitations([]);
     setError("");
-    setSelectedPaper(null);
     setCurrentView("chat");
   }
 
-  // Open the Paper Library without discarding the current chat state.
+  // Open the Paper Library without discarding the active conversation.
   function handleShowLibrary() {
     setCurrentView("library");
   }
 
-  // Start a new research session scoped to the selected paper.
-  function handleStartResearch(paper: Paper) {
-    setSelectedPaper(paper);
+  // Open conversation history without discarding the active conversation.
+  function handleShowConversations() {
+    setCurrentView("conversations");
+  }
+
+  /**
+   * Restore a saved conversation and return to the chat workspace.
+   * The conversation hook resolves its messages and paper context
+   * from the selected conversation.
+   */
+  function handleSelectConversation(conversationId: string) {
+    selectConversation(conversationId);
     setQuestion("");
-    setAnswer("");
-    setCitations([]);
     setError("");
     setCurrentView("chat");
   }
 
-  // Remove the paper filter and return to unrestricted collection search.
+  /**
+   * Start a new conversation scoped to the selected research paper.
+   *
+   * The selected paper is stored in the new conversation so its context
+   * can be restored when conversation history navigation is implemented.
+   */
+  function handleStartResearch(paper: Paper) {
+    createConversation(paper.arxiv_id, paper.title);
+
+    setQuestion("");
+    setError("");
+    setCurrentView("chat");
+  }
+
+  /**
+   * Remove the paper filter from the active conversation.
+   *
+   * This does not delete previous messages or citations.
+   */
   function handleClearPaperScope() {
-    setSelectedPaper(null);
-    setAnswer("");
-    setCitations([]);
+    if (!activeConversationId) {
+      return;
+    }
+
+    updatePaperScope(activeConversationId, null, null);
     setError("");
   }
 
-  // Submit a research question to the FastAPI backend.
+  /**
+   * Submit a research question to the FastAPI backend.
+   *
+   * Both the user question and assistant response are persisted as messages.
+   * Previous messages are not yet included in the backend request; multi-turn
+   * RAG context requires a separate backend implementation.
+   */
   async function handleAskQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -153,21 +328,50 @@ function App() {
       return;
     }
 
+    /**
+     * Reuse the active conversation or create one when the user submits
+     * their first question without explicitly starting a new chat.
+     */
+    const conversation =
+      activeConversation ??
+      createConversation(
+        selectedPaper?.arxiv_id ?? null,
+        selectedPaper?.title ?? null,
+      );
+
+    // Persist the user's question before starting backend inference.
+    const userMessage: UserMessage = {
+      id: generateMessageId(),
+      role: "user",
+      content: trimmedQuestion,
+      createdAt: new Date().toISOString(),
+    };
+
+    addMessage(conversation.id, userMessage);
+
+    setQuestion("");
     setIsLoading(true);
     setError("");
-    setAnswer("");
-    setCitations([]);
 
     try {
-      // Pass arxiv_id when a paper is selected.
-      // Without it, the backend searches the complete paper collection.
+      // Send the current question and its optional paper scope.
+      // Conversation history is intentionally not sent to the backend yet.
       const result = await askQuestion({
         question: trimmedQuestion,
-        arxiv_id: selectedPaper?.arxiv_id ?? null,
+        arxiv_id: conversation.arxivId,
       });
 
-      setAnswer(result.answer);
-      setCitations(result.citations);
+      // Keep the answer and its evidence together for reliable restoration.
+      const assistantMessage: AssistantMessage = {
+        id: generateMessageId(),
+        role: "assistant",
+        content: result.answer,
+        citations: result.citations,
+        contextTokenCount: result.context_token_count,
+        createdAt: new Date().toISOString(),
+      };
+
+      addMessage(conversation.id, assistantMessage);
     } catch (err) {
       setError(
         err instanceof Error
@@ -184,6 +388,7 @@ function App() {
       <Sidebar
         onNewChat={handleNewChat}
         onShowLibrary={handleShowLibrary}
+        onShowConversations={handleShowConversations}
         activeView={currentView}
       />
 
@@ -203,129 +408,71 @@ function App() {
           </p>
         </header>
 
+        {/* Inform the user if browser storage could not persist changes. */}
+        {storageError && (
+          <div className="error-message" role="alert">
+            <strong>Conversation storage unavailable</strong>
+            <p>{storageError}</p>
+          </div>
+        )}
+
         {currentView === "library" ? (
           <PaperLibrary onStartResearch={handleStartResearch} />
+        ) : currentView === "conversations" ? (
+          <ConversationList
+            conversations={conversations}
+            onSelectConversation={handleSelectConversation}
+          />
         ) : (
           <section className="chat-workspace">
-            {!answer && !isLoading && !error && (
-              <div className="welcome-section">
-                <h2>What would you like to research?</h2>
+            {/* Show the welcome state only for a genuinely empty conversation. */}
+            {(!activeConversation || activeConversation.messages.length === 0) &&
+              !isLoading &&
+              !error && (
+                <div className="welcome-section">
+                  <h2>What would you like to research?</h2>
+                  <p>
+                    {selectedPaper
+                      ? "Ask questions about the selected paper. Answers will use evidence retrieved from that paper."
+                      : "Ask questions across your research papers and get evidence-backed answers with citations."}
+                  </p>
+                </div>
+              )}
 
-                <p>
-                  {selectedPaper
-                    ? "Ask questions about the selected paper. Answers will use evidence retrieved from that paper."
-                    : "Ask questions across your research papers and get evidence-backed answers with citations."}
-                </p>
-              </div>
-            )}
+            {/* Render every saved message in chronological order. */}
+            <div className="message-transcript">
+              {activeConversation?.messages.map((message) =>
+                message.role === "user" ? (
+                  <article className="user-message" key={message.id}>
+                    <div className="message-timestamp">
+                      {new Date(message.createdAt).toLocaleString()}
+                    </div>
+                    <div className="user-message-content">{message.content}</div>
+                  </article>
+                ) : (
+                  <AssistantResponse message={message} key={message.id} />
+                ),
+              )}
+            </div>
 
             {isLoading && (
-              <div className="status-message" role="status">
-                <p>Searching papers and generating your answer...</p>
-
-                <p className="status-detail">
-                  Retrieval, reranking, and local LLM inference may take a while.
-                </p>
+              <div className="loading-state" role="status">
+                <p>Researching your question...</p>
               </div>
             )}
 
             {error && (
               <div className="error-message" role="alert">
-                <strong>Unable to answer your question</strong>
-                <p>{error}</p>
+                {error}
               </div>
             )}
 
-            {answer && (
-              <section
-                className="answer-container"
-                aria-label="Research response"
-              >
-                <h2 className="answer-section-title">Research response</h2>
-
-                <div className="answer-layout">
-                  <main className="answer-main">
-                    <div className="answer-card">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {formatAnswerCitations(answer, citations)}
-                      </ReactMarkdown>
-                    </div>
-                  </main>
-
-                  <aside className="citations-section" aria-label="Sources">
-                    <div className="sources-heading">
-                      <h3>Sources</h3>
-                      <span>{citations.length}</span>
-                    </div>
-
-                    {citations.length === 0 ? (
-                      <p className="sources-empty">
-                        No source passages were returned.
-                      </p>
-                    ) : (
-                      <div className="citations-list">
-                        {citations.map((citation) => (
-                          <article
-                            id={`source-${citation.evidence_id.replace(/^E/i, "")}`}
-                            className="citation-card"
-                            key={citation.evidence_id}
-                          >
-                            <div className="citation-title-row">
-                              <strong className="citation-number">
-                                [{citation.evidence_id.replace(/^E/i, "")}]
-                              </strong>
-
-                              <h4>{citation.title}</h4>
-                            </div>
-
-                            <div className="citation-metadata">
-                              <span>arXiv: {citation.arxiv_id}</span>
-
-                              <span
-                                className="citation-metadata-separator"
-                                aria-hidden="true"
-                              >
-                                ·
-                              </span>
-
-                              <span>Page {citation.page_number}</span>
-                            </div>
-
-                            <a
-                              className="citation-paper-link"
-                              href={`https://arxiv.org/abs/${encodeURIComponent(citation.arxiv_id)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              Open paper <span aria-hidden="true">↗</span>
-                            </a>
-
-                            <p className="citation-text">
-                              {getCitationExcerpt(citation.text)}
-                            </p>
-
-                            <details className="citation-original">
-                              <summary>Show original passage</summary>
-                              <p>{citation.text}</p>
-                            </details>
-                          </article>
-                        ))}
-                      </div>
-                    )}
-                  </aside>
-                </div>
-              </section>
-            )}
-
             <form className="question-form" onSubmit={handleAskQuestion}>
-              {/* 
+              {/*
                * Keep the selected-paper context inside the sticky composer.
                * This makes the context tab move with the question input.
                */}
-              
+
               {selectedPaper && (
                 <div className="research-scope">
                   {/* First line: context label and circular close control. */}
@@ -369,7 +516,6 @@ function App() {
                 </div>
               )}
 
-
               <div
                 ref={questionEditorRef}
                 className="question-editor"
@@ -408,12 +554,12 @@ function App() {
                     : "Answers are grounded in the scientific literature indexed by SciLitRAG."}
                 </span>
 
-               <button
+                <button
                   type="submit"
                   disabled={!question.trim() || isLoading}
                 >
                   <span>{isLoading ? "Researching..." : "Ask question"}</span>
-                  <ArrowRight  size={14} strokeWidth={2} />
+                  <ArrowRight size={14} strokeWidth={2} />
                 </button>
               </div>
             </form>
