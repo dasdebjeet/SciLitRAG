@@ -20,7 +20,7 @@ GPU memory strategy:
     This avoids keeping all models resident on the GPU simultaneously.
 
 Citation strategy:
-    The generator receives evidence labels such as [E1] and [E2].
+    The generator receives numeric source labels such as [1] and [2].
     Generated labels are checked against the evidence actually supplied
     to the model. Unrecognized labels are explicitly marked as unverified.
 """
@@ -54,8 +54,8 @@ LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
 LOGGER = logging.getLogger(__name__)
 
-# Match individual evidence references such as [E1], [E12], and [E105].
-CITATION_PATTERN = re.compile(r"\[(E\d+)\]")
+# Match numeric source references such as [1], [12], and [105].
+CITATION_PATTERN = re.compile(r"\[(\d+)\]")
 
 
 
@@ -74,10 +74,10 @@ STRICT EVIDENCE RULES:
 2. Base factual claims about the research exclusively on the supplied passages.
    Do not invent experimental results, methods, metrics, or conclusions.
 
-3. Cite supporting claims using the exact evidence identifiers supplied in
-   the context, for example [E1] or [E2].
+3. Cite supporting claims using the exact numeric source identifiers supplied
+   in the context, for example [1] or [2].
 
-4. Never invent, modify, or guess an evidence identifier.
+4. Never invent, modify, or guess a source identifier.
 
 5. If the passages do not contain sufficient information, clearly explain
    what cannot be established from the available evidence.
@@ -148,8 +148,8 @@ GENERAL CONVERSATION RULES:
 4. Do not refer to retrieved research papers or claim that your
    identity or purpose must be established from research evidence.
 
-5. Do not generate paper citations or evidence identifiers such as
-   [E1] or [E2].
+5. Do not generate paper citations or numeric source identifiers such as
+   [1] or [2].
 
 6. Do not invent capabilities. Explain your functionality honestly.
 

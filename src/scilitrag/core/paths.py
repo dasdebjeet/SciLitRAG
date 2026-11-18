@@ -13,3 +13,6 @@ METADATA_DIR = DATA_DIR / "metadata"
 EVALUATION_DIR = DATA_DIR / "evaluation"
 
 DEFAULT_CHUNKS_PATH = PROCESSED_DATA_DIR / "chunks.jsonl"
+
+# Metadata describing the papers available in the local research library.
+PAPERS_METADATA_PATH = METADATA_DIR / "papers.json"

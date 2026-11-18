@@ -14,7 +14,7 @@ Responsibilities:
     - Return both formatted context and citation metadata.
 
 Design:
-    The generator receives evidence labels such as [E1] and [E2].
+    The generator receives numeric source labels such as [1] and [2].
     The application resolves those labels into paper titles, arXiv IDs,
     and page numbers after generation.
 
@@ -181,7 +181,7 @@ class ContextBuilder:
             if paper_counts[arxiv_id] >= self.max_chunks_per_paper:
                 continue
 
-            evidence_id = f"E{len(selected) + 1}"
+            evidence_id = str(len(selected) + 1)
 
             evidence = Evidence(
                 evidence_id=evidence_id,
@@ -230,7 +230,7 @@ class ContextBuilder:
         # This prevents citations to passages the model never received.
         final_evidence = [
             Evidence(
-                evidence_id=f"E{index}",
+                evidence_id=str(index),
                 chunk_id=item.chunk_id,
                 arxiv_id=item.arxiv_id,
                 title=item.title,

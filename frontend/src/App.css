@@ -1,0 +1,1358 @@
+
+/*
+ * SciLitRAG application layout and component styling.
+ *
+ * Uses shared design tokens from index.css.
+ * Navigation is a floating icon rail on desktop and transforms
+ * into a floating bottom navigation bar on mobile.
+ */
+
+/* ============================================================
+   1. Application layout
+   ============================================================ */
+
+.app-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: transparent;
+}
+
+/* ============================================================
+   2. Floating navigation rail
+   ============================================================ */
+
+.sidebar {
+  position: fixed;
+  z-index: 20;
+  top: 50%;
+  left: 22px;
+  transform: translateY(-50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+
+  width: 64px;
+  padding: 13px 9px;
+
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-sidebar) 88%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-card);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.sidebar-navigation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+}
+
+.navigation-item {
+  position: relative;
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.navigation-item:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  transform: translateY(-1px);
+}
+
+.navigation-item.active {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+}
+
+.navigation-item.active::before {
+  position: absolute;
+  left: -10px;
+  width: 3px;
+  height: 19px;
+  content: "";
+  background: var(--color-primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.navigation-placeholder {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.navigation-placeholder:hover {
+  color: var(--color-muted);
+  background: transparent;
+  transform: none;
+}
+
+/* ============================================================
+   3. Navigation tooltips
+   ============================================================ */
+
+.sidebar [data-tooltip] {
+  position: relative;
+}
+
+.sidebar [data-tooltip]::after {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 13px);
+  z-index: 30;
+
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 11px;
+
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  box-shadow: var(--shadow-card);
+
+  content: attr(data-tooltip);
+
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-4px, -50%);
+
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.sidebar [data-tooltip]:hover::after,
+.sidebar [data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.sidebar-footer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ============================================================
+   4. Main workspace and branding
+   ============================================================ */
+
+.main-content {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 32px 48px 36px 112px;
+  background: transparent;
+}
+
+.main-header {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+}
+
+.brand-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.brand-name {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1.1px;
+}
+
+.brand-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+
+.brand-role {
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.35px;
+}
+
+.brand-description {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   5. Welcome state and chat workspace
+   ============================================================ */
+
+.welcome-section {
+  max-width: 680px;
+  margin: 120px auto 0;
+  text-align: center;
+}
+
+.welcome-section h2 {
+  margin: 0 0 12px;
+  color: var(--color-text);
+  font-size: 25px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+
+.welcome-section p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.chat-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  width: 100%;
+  max-width: var(--content-max-width);
+  min-height: calc(100vh - 145px);
+  margin: 0 auto;
+}
+
+.chat-workspace .welcome-section {
+  margin: auto;
+  padding: 40px 0;
+}
+
+/* ============================================================
+   6. Research response
+   ============================================================ */
+
+.answer-container {
+  min-width: 0;
+  margin-top: 28px;
+  margin-bottom: 24px;
+}
+
+.answer-section-title {
+  margin: 0 0 16px;
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.answer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 300px);
+  align-items: start;
+  gap: 20px;
+}
+
+.answer-main {
+  min-width: 0;
+}
+
+.answer-card {
+  padding: 25px 28px;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.answer-card > :first-child {
+  margin-top: 0;
+}
+
+.answer-card > :last-child {
+  margin-bottom: 0;
+}
+
+.answer-card h1,
+.answer-card h2,
+.answer-card h3,
+.answer-card h4 {
+  margin-top: 23px;
+  margin-bottom: 9px;
+  color: var(--color-text);
+  line-height: 1.35;
+  letter-spacing: -0.025em;
+}
+
+.answer-card h1 {
+  font-size: 23px;
+  font-weight: 750;
+}
+
+.answer-card h2 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.answer-card h3 {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.answer-card h4 {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.answer-card p,
+.answer-card li {
+  color: var(--color-text-secondary);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.answer-card p {
+  margin: 9px 0;
+}
+
+.answer-card ul,
+.answer-card ol {
+  padding-left: 22px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+}
+
+.answer-card li {
+  margin-bottom: 4px;
+}
+
+.answer-card strong {
+  color: var(--color-text);
+}
+
+.answer-card blockquote {
+  margin: 14px 0;
+  padding: 12px 16px;
+
+  color: var(--color-muted);
+  background: var(--color-surface-raised);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.answer-card pre {
+  overflow-x: auto;
+  padding: 16px;
+
+  color: var(--color-text);
+  background: var(--color-code-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.answer-card pre code {
+  color: var(--color-code-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.answer-card :not(pre) > code {
+  padding: 2px 6px;
+  color: var(--color-code-text);
+  background: var(--color-code-background);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.answer-card table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.answer-card th,
+.answer-card td {
+  padding: 11px 13px;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.answer-card th {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
+}
+
+.answer-card a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.answer-card hr {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ============================================================
+   7. Question composer
+   ============================================================ */
+
+.question-form {
+  position: sticky;
+  bottom: 20px;
+  z-index: 10;
+
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 17px 18px 14px;
+
+  background: color-mix(
+    in srgb,
+    var(--color-surface) 88%,
+    transparent
+  );
+
+  border: 2px solid var(--color-primary-border);
+  border-radius: var(--radius-xl);
+
+  box-shadow:
+    0 0 20px 12px color-mix(in srgb, var(--color-text) 8%, transparent),
+    0 8px 30px color-mix(in srgb, var(--color-text) 10%, transparent),
+    0 0 24px color-mix(in srgb, var(--color-primary) 6%, transparent);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.question-form:focus-within {
+  border-color: var(--color-primary);
+
+  box-shadow:
+    0 8px 30px color-mix(in srgb, var(--color-text) 10%, transparent),
+    0 0 0 3px var(--color-primary-soft),
+    0 0 28px color-mix(in srgb, var(--color-primary) 9%, transparent);
+}
+
+/* Soft fade behind the floating composer. */
+.question-form::before {
+  content: "";
+  position: absolute;
+  left: -24px;
+  right: -24px;
+  top: -55px;
+  bottom: -20px;
+
+  z-index: -1;
+  pointer-events: none;
+
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--color-background) 45%, transparent) 45%,
+    color-mix(in srgb, var(--color-background) 88%, transparent) 100%
+  );
+
+  filter: blur(14px);
+}
+
+/* Content-editable question editor. */
+.question-editor {
+  display: block;
+  width: 100%;
+  min-height: 76px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 2px;
+
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.question-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.question-editor[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   8. Question composer footer and Ask button
+   ============================================================ */
+
+.question-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.question-form-footer span {
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Keep helper text muted; only the enabled button label is dark. */
+.question-form-footer button:not(:disabled) span {
+  color: #07140B;
+}
+
+/* Emerald action button. */
+.question-form-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 10px;
+
+  min-height: 40px;
+  padding: 0 17px;
+
+  color: #07140B;
+  background: linear-gradient(
+    135deg,
+    #2BE866 0%,
+    #19C953 100%
+  );
+
+  border: 1px solid rgba(77, 255, 132, 0.35);
+  border-radius: 10px;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+
+  box-shadow:
+    0 3px 10px rgba(25, 201, 83, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  cursor: pointer;
+
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.question-form-footer button svg {
+  flex-shrink: 0;
+  transition: transform 180ms ease;
+}
+
+.question-form-footer button:hover:not(:disabled) {
+  background: linear-gradient(
+    135deg,
+    #48F27A 0%,
+    #20D960 100%
+  );
+
+  border-color: rgba(77, 255, 132, 0.65);
+
+  box-shadow:
+    0 5px 18px rgba(25, 201, 83, 0.25),
+    0 0 12px rgba(34, 232, 92, 0.1);
+
+  transform: translateY(-1px);
+}
+
+.question-form-footer button:hover:not(:disabled) svg {
+  transform: translateX(3px);
+}
+
+.question-form-footer button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(25, 201, 83, 0.15);
+}
+
+.question-form-footer button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Disabled button remains subdued but readable in either theme. */
+.question-form-footer button:disabled {
+  color: var(--color-on-primary, #FFFFFF);
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 35%,
+    var(--color-surface-raised)
+  );
+  border-color: var(--color-border);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   9. Request status and errors
+   ============================================================ */
+
+.status-message {
+  margin: auto 0;
+  padding: 28px;
+  text-align: center;
+}
+
+.status-message p {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.status-detail {
+  color: var(--color-muted) !important;
+  font-size: 13px;
+  font-weight: 400 !important;
+}
+
+.error-message {
+  margin-top: 32px;
+  padding: 18px;
+
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+}
+
+.error-message p {
+  margin-bottom: 0;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* ============================================================
+   10. Supporting evidence and citation cards
+   ============================================================ */
+
+.citations-section {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.sources-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 2px 0 12px;
+}
+
+.sources-heading h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sources-heading > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 7px;
+
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-radius: 7px;
+
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sources-empty {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.citations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.citation-card {
+  min-width: 0;
+  padding: 12px 13px;
+
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.citation-card:hover {
+  border-color: var(--color-primary-border);
+}
+
+.citation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.citation-header span {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.citation-card h4 {
+  margin: 8px 0 5px;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.citation-arxiv {
+  margin: 0 0 8px;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.citation-text {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.citation-original {
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+
+.citation-original summary {
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 10.5px;
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.citation-original summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.citation-original > p {
+  margin: 9px 0 0;
+  padding: 9px;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-sm);
+
+  font-size: 11px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Keep citation number and paper title together. */
+.citation-title-row {
+  display: block;
+  min-width: 0;
+  margin: 0 0 7px;
+}
+
+.citation-title-row .citation-number {
+  display: inline;
+  margin-right: 6px;
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.citation-title-row h4 {
+  display: inline;
+  margin: 0;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.citation-metadata {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.citation-metadata-separator {
+  color: inherit;
+  font-weight: 800;
+}
+
+.citation-paper-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 9px;
+
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+
+  transition: color 150ms ease, opacity 150ms ease;
+}
+
+.citation-paper-link:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.citation-paper-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   11. Selected-paper context tab
+   ============================================================ */
+
+.question-form .research-scope {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+
+  /* Extend the tab to the edges of the composer. */
+  margin: -17px -18px 14px;
+  padding: 12px 16px 11px;
+
+  /* Uses the active theme's surface instead of forcing black. */
+  background: linear-gradient(
+    115deg,
+    color-mix(
+      in srgb,
+      var(--color-primary) 22%,
+      var(--color-surface)
+    ) 0%,
+    color-mix(
+      in srgb,
+      var(--color-primary) 13%,
+      var(--color-surface)
+    ) 55%,
+    var(--color-surface) 100%
+  );
+
+  border-bottom: 1px solid color-mix(
+    in srgb,
+    var(--color-primary-border) 55%,
+    transparent
+  );
+
+  border-radius:
+    calc(var(--radius-xl) - 2px)
+    calc(var(--radius-xl) - 2px)
+    0 0;
+
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-text) 4%, transparent),
+    0 5px 16px color-mix(in srgb, var(--color-primary) 7%, transparent);
+}
+
+/* First line: context label and close button. */
+.research-scope-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.research-scope-label-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.research-scope-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.research-scope-label {
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* Second line: title and arXiv ID stay on one row. */
+.research-scope-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Long titles truncate rather than wrapping. */
+.research-scope-title {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Keep the arXiv identifier visible. */
+.research-scope-id {
+  display: block;
+  flex: 0 0 auto;
+
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.research-scope-separator {
+  margin-right: 6px;
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
+/* Refined graphite close button with an emerald undertone. */
+.question-form .research-scope-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  color: var(--color-muted);
+  background: color-mix(
+    in srgb,
+    var(--color-surface-raised) 78%,
+    var(--color-primary) 8%
+  );
+
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  box-shadow: inset 0 1px 0 color-mix(
+    in srgb,
+    var(--color-text) 5%,
+    transparent
+  );
+
+  cursor: pointer;
+
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+/* Rose hover is reserved for the destructive remove action. */
+.question-form .research-scope-close:hover:not(:disabled) {
+  color: #FFFFFF;
+  background: var(--color-error, #C6535D);
+  border-color: var(--color-error, #C6535D);
+  box-shadow: 0 0 12px color-mix(
+    in srgb,
+    var(--color-error, #C6535D) 25%,
+    transparent
+  );
+  transform: rotate(90deg);
+}
+
+.question-form .research-scope-close:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+.question-form .research-scope-close:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.question-form .research-scope-close:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   12. Citation links and source navigation
+   ============================================================ */
+
+.answer-card a[href^="#source-"] {
+  display: inline-block;
+  position: relative;
+  top: -0.35em;
+  margin: 0 1px;
+
+  color: var(--color-primary);
+  font-size: 0.72em;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: baseline;
+
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+.answer-card a[href^="#source-"]:hover {
+  text-decoration: underline;
+}
+
+.answer-card a[href^="#source-"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.citation-card[id] {
+  scroll-margin-top: 100px;
+}
+
+/* ============================================================
+   13. Responsive layout: tablets
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .answer-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .citations-section {
+    margin-top: 4px;
+  }
+
+  .citations-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 28px 26px 28px 108px;
+  }
+
+  .chat-workspace {
+    min-height: calc(100vh - 125px);
+  }
+}
+
+/* ============================================================
+   14. Responsive layout: compact screens
+   ============================================================ */
+
+@media (max-width: 760px) {
+  .sidebar {
+    left: 14px;
+    width: 58px;
+    padding: 11px 7px;
+    border-radius: 19px;
+  }
+
+  .navigation-item {
+    width: 42px;
+    height: 42px;
+  }
+
+  .main-content {
+    padding: 24px 18px 24px 88px;
+  }
+
+  .brand-name {
+    font-size: 24px;
+  }
+
+  .brand-role {
+    font-size: 17px;
+  }
+
+  .welcome-section {
+    margin-top: 80px;
+  }
+
+  .answer-card {
+    padding: 19px;
+  }
+}
+
+/* ============================================================
+   15. Responsive layout: phones
+   ============================================================ */
+
+@media (max-width: 560px) {
+  .app-layout {
+    display: block;
+    min-height: 100vh;
+  }
+
+  /* Floating bottom navigation. */
+  .sidebar {
+    top: auto;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+
+    width: max-content;
+    max-width: calc(100vw - 28px);
+    min-height: 0;
+    padding: 9px 12px;
+
+    border-radius: 20px;
+  }
+
+  .sidebar-navigation {
+    flex-direction: row;
+    width: auto;
+    gap: 5px;
+    padding: 0;
+  }
+
+  .navigation-item {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navigation-item.active::before {
+    top: auto;
+    bottom: -9px;
+    left: 50%;
+
+    width: 17px;
+    height: 3px;
+
+    transform: translateX(-50%);
+    border-radius: 3px 3px 0 0;
+  }
+
+  .sidebar-footer {
+    width: auto;
+    margin-top: 0;
+    padding: 0 0 0 9px;
+
+    border-top: 0;
+    border-left: 1px solid var(--color-border);
+  }
+
+  /* Tooltips appear above the mobile navigation bar. */
+  .sidebar [data-tooltip]::after {
+    top: auto;
+    bottom: calc(100% + 13px);
+    left: 50%;
+    transform: translate(-50%, 4px);
+  }
+
+  .sidebar [data-tooltip]:hover::after,
+  .sidebar [data-tooltip]:focus-visible::after {
+    transform: translate(-50%, 0);
+  }
+
+  .main-content {
+    padding: 22px 14px 100px;
+  }
+
+  .brand-name {
+    font-size: 22px;
+  }
+
+  .brand-role {
+    font-size: 15px;
+  }
+
+  .brand-description {
+    font-size: 12px;
+  }
+
+  .chat-workspace {
+    min-height: calc(100vh - 150px);
+    gap: 20px;
+  }
+
+  .welcome-section {
+    margin-top: 65px;
+  }
+
+  .answer-container {
+    margin-top: 22px;
+    margin-bottom: 20px;
+  }
+
+  .answer-section-title {
+    font-size: 18px;
+  }
+
+  .answer-card {
+    padding: 17px;
+  }
+
+  .citations-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .question-form {
+    bottom: 10px;
+  }
+
+  .question-form-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  /* Preserve the attached paper tab on narrow screens. */
+  .question-form .research-scope {
+    margin-right: -18px;
+    margin-left: -18px;
+    padding: 11px 13px 10px;
+  }
+
+  .research-scope-label {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+
+  .research-scope-title {
+    font-size: 11px;
+  }
+
+  .research-scope-id {
+    font-size: 9px;
+  }
+
+  .question-editor {
+    min-height: 68px;
+  }
+}
+
+/* ============================================================
+   16. Accessibility: reduced motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

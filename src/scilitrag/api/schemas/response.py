@@ -12,14 +12,14 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CitationResponse(BaseModel):
-    """Represent a verified evidence passage and its paper reference."""
+    """Represent a verified source passage and its paper reference."""
 
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str = Field(
         ...,
-        description="Evidence label used in the generated answer.",
-        examples=["E1"],
+        description="Numeric source label used in the generated answer.",
+        examples=["1"],
     )
 
     chunk_id: str = Field(
@@ -51,6 +51,52 @@ class CitationResponse(BaseModel):
     reranker_score: float = Field(
         ...,
         description="Cross-encoder relevance score; not a probability.",
+    )
+
+
+class PaperResponse(BaseModel):
+    """Represent a research paper available in the SciLitRAG library."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    arxiv_id: str = Field(
+        ...,
+        description="Versioned arXiv identifier of the paper.",
+    )
+
+    title: str = Field(
+        ...,
+        description="Full title of the research paper.",
+    )
+
+    authors: list[str] = Field(
+        ...,
+        description="Authors of the research paper.",
+    )
+
+    abstract: str = Field(
+        ...,
+        description="Abstract describing the research paper.",
+    )
+
+    published: str = Field(
+        ...,
+        description="Original publication timestamp in ISO 8601 format.",
+    )
+
+    categories: list[str] = Field(
+        ...,
+        description="All arXiv categories assigned to the paper.",
+    )
+
+    primary_category: str = Field(
+        ...,
+        description="Primary arXiv category of the paper.",
+    )
+
+    pdf_url: str = Field(
+        ...,
+        description="Public URL of the paper's PDF on arXiv.",
     )
 
 

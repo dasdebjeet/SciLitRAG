@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from scilitrag.api.routes import ask, health
+from scilitrag.api.routes import ask, health, papers
 
 
 # Create the central FastAPI application.
@@ -31,6 +31,19 @@ app.include_router(
 # Register research-question endpoints under a versioned API prefix.
 app.include_router(
     ask.router,
+    prefix="/api/v1",
+    tags=["Research"],
+)
+
+# Register research-question and paper-library endpoints.
+app.include_router(
+    ask.router,
+    prefix="/api/v1",
+    tags=["Research"],
+)
+
+app.include_router(
+    papers.router,
     prefix="/api/v1",
     tags=["Research"],
 )

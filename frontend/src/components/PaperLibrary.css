@@ -1,0 +1,578 @@
+
+/*
+ * Paper Library styles.
+ *
+ * Uses the shared SciLitRAG design tokens so that the library
+ * automatically adapts to system, light, and dark theme settings.
+ */
+
+/* Main library workspace. */
+.library-workspace {
+  width: 100%;
+  max-width: 1400px;
+  margin: 34px auto 0;
+}
+
+/* Library heading and paper count. */
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.library-header h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 23px;
+  font-weight: 650;
+}
+
+.library-header p {
+  margin: 7px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.library-count {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Search and category filtering controls. */
+.library-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.library-toolbar input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  font-size: 13px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.library-toolbar input::placeholder {
+  color: var(--color-muted);
+}
+
+.library-toolbar input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+/* Custom category dropdown. */
+.category-filter {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  z-index: 5;
+}
+
+/* Closed dropdown trigger. */
+.category-filter-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 43px;
+  padding: 12px 14px;
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+.category-filter-trigger:hover,
+.category-filter.is-open .category-filter-trigger {
+  border-color: var(--color-primary);
+}
+
+.category-filter-trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.category-filter-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-filter-chevron {
+  flex-shrink: 0;
+  color: var(--color-muted);
+  transition:
+    transform 180ms ease,
+    color 180ms ease;
+}
+
+.category-filter.is-open .category-filter-chevron {
+  color: var(--color-primary);
+  transform: rotate(180deg);
+}
+
+/* Floating dropdown panel. */
+.category-dropdown {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: 100%;
+  min-width: 220px;
+  padding: 7px;
+
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.18),
+    0 3px 10px rgba(0, 0, 0, 0.08);
+
+  animation: category-dropdown-enter 150ms ease-out;
+}
+
+@keyframes category-dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dropdown section label. */
+.category-dropdown-heading {
+  padding: 9px 10px 10px;
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+/* Scrollable category options. */
+.category-dropdown-options {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 310px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+/* Individual category options. */
+.category-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 11px;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.category-option:hover,
+.category-option.active {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+}
+
+.category-option.selected {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+  font-weight: 650;
+}
+
+.category-option.selected svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.category-option:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* Main two-column library layout. */
+.library-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.paper-results,
+.paper-details {
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Search results heading. */
+.paper-results-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.paper-results-heading strong {
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.paper-results-heading span {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* Scrollable paper results. */
+.paper-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 680px;
+  overflow-y: auto;
+}
+
+.paper-list-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  width: 100%;
+  padding: 17px 20px;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.paper-list-item:last-child {
+  border-bottom: 0;
+}
+
+.paper-list-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.paper-list-item.selected {
+  background: var(--color-primary-soft);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.paper-list-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.paper-list-title {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.paper-list-title .katex {
+  font-size: 1em;
+}
+
+.paper-list-meta {
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 550;
+}
+
+.paper-list-authors {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Selected paper details panel. */
+.paper-details {
+  position: sticky;
+  top: 24px;
+  padding: 22px;
+}
+
+.paper-details-label {
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.paper-details-heading h3 {
+  margin: 12px 0 20px;
+  color: var(--color-text);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.paper-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.paper-metadata div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.paper-metadata span {
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+.paper-metadata strong {
+  overflow-wrap: anywhere;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+/* Abstract typography and mathematical notation. */
+.paper-abstract {
+  margin-top: 20px;
+}
+
+.paper-abstract h4 {
+  margin: 0 0 10px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.paper-abstract p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.paper-abstract .katex {
+  font-size: 1em;
+}
+
+/* arXiv category labels. */
+.paper-category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.paper-category-list span {
+  padding: 5px 9px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 550;
+}
+
+/* Selected-paper actions. */
+.paper-details-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 24px;
+}
+
+.start-research-button {
+  width: 100%;
+  padding: 12px 16px;
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+  border: 0;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 650;
+  transition: background-color 150ms ease, transform 150ms ease;
+  cursor: pointer;
+}
+
+.start-research-button:hover {
+  background: var(--color-primary-hover);
+}
+
+.start-research-button:active {
+  transform: translateY(1px);
+}
+
+.paper-details-actions a {
+  color: var(--color-primary);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.paper-details-actions a:hover {
+  text-decoration: underline;
+}
+
+/* Loading, empty, and error states. */
+.library-status,
+.library-empty {
+  padding: 28px;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.library-error {
+  padding: 22px;
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+}
+
+.library-error p {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.library-error button {
+  padding: 9px 13px;
+  color: var(--color-on-primary);
+  background: var(--color-error);
+  border: 0;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.library-error button:hover {
+  filter: brightness(1.08);
+}
+
+/* Visible keyboard focus for interactive library elements. */
+.start-research-button:focus-visible,
+.library-error button:focus-visible,
+.paper-details-actions a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Collapse the two-column library on narrower screens. */
+@media (max-width: 1050px) {
+  .library-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .paper-details {
+    position: static;
+  }
+
+  .paper-list {
+    max-height: 460px;
+  }
+}
+
+@media (max-width: 600px) {
+  .library-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .library-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .paper-details {
+    padding: 18px;
+  }
+
+  .paper-results-heading {
+    padding: 16px;
+  }
+
+  .paper-list-item {
+    padding: 15px 16px;
+  }
+
+  .category-dropdown {
+    right: 0;
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .category-dropdown {
+    animation: none;
+  }
+
+  .category-filter-trigger,
+  .category-filter-chevron,
+  .category-option {
+    transition: none;
+  }
+}

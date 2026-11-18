@@ -30,7 +30,7 @@ class FakeAnswerPipeline:
             raise RuntimeError("Simulated internal model failure")
 
         citation = SimpleNamespace(
-            evidence_id="E1",
+            evidence_id="1",
             chunk_id="test-chunk-001",
             arxiv_id=arxiv_id or "2611.17111v1",
             title="Test Research Paper",
@@ -41,7 +41,7 @@ class FakeAnswerPipeline:
 
         return SimpleNamespace(
             question=question,
-            answer="This is a test answer supported by [E1].",
+            answer="This is a test answer supported by [1].",
             citations=[citation],
             context_token_count=120,
         )
@@ -81,11 +81,11 @@ def test_ask_returns_answer_and_citations(
 
     payload = response.json()
     assert payload["question"] == "How does the proposed method work?"
-    assert payload["answer"] == "This is a test answer supported by [E1]."
+    assert payload["answer"] == "This is a test answer supported by [1]."
     assert payload["context_token_count"] == 120
 
     assert len(payload["citations"]) == 1
-    assert payload["citations"][0]["evidence_id"] == "E1"
+    assert payload["citations"][0]["evidence_id"] == "1"
     assert payload["citations"][0]["page_number"] == 2
 
 

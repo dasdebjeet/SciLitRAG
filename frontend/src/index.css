@@ -1,0 +1,367 @@
+
+/*
+ * SciLitRAG — Global Design System
+ *
+ * Theme behavior:
+ * - Follows the operating system by default.
+ * - data-theme="light" explicitly selects light mode.
+ * - data-theme="dark" explicitly selects dark mode.
+ *
+ * Background treatment:
+ * - Subtle emerald ambient lighting.
+ * - Fine cinematic film grain concentrated near the top.
+ * - Background effects remain behind all application content.
+ */
+
+/* =========================================================
+   1. DESIGN TOKENS — LIGHT THEME (DEFAULT)
+   ========================================================= */
+
+:root {
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Shared layout tokens. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --sidebar-width: 260px;
+  --content-max-width: 1100px;
+
+  color-scheme: light;
+
+  /* Main surfaces. */
+  --color-background: #f5f8f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #ffffff;
+  --color-surface-hover: #edf3ee;
+  --color-sidebar: #ffffff;
+
+  /* Typography. */
+  --color-text: #17211b;
+  --color-text-secondary: #46534a;
+  --color-muted: #77837b;
+  --color-border: #e1e8e2;
+
+  /* Emerald accent. */
+  --color-primary: #168a3b;
+  --color-primary-hover: #117331;
+  --color-primary-soft: #e6f5ea;
+  --color-primary-border: #c5e8ce;
+  --color-on-primary: #ffffff;
+
+  /* Error states. */
+  --color-error: #c43d48;
+  --color-error-surface: #fff0f0;
+  --color-error-border: #f2c6c9;
+
+  /* Code blocks. */
+  --color-code-background: #edf1ee;
+  --color-code-text: #245b35;
+
+  /* Overlays and shadows. */
+  --color-overlay: rgba(15, 25, 18, 0.45);
+  --shadow-soft: 0 4px 20px rgba(24, 40, 29, 0.05);
+  --shadow-card: 0 8px 30px rgba(24, 40, 29, 0.06);
+
+  color: var(--color-text);
+  background: var(--color-background);
+}
+
+/* =========================================================
+   2. DARK THEME TOKENS
+   ========================================================= */
+
+/*
+ * When no explicit theme is selected, use the system preference.
+ * The canvas is deliberately pure black rather than dark grey.
+ */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+
+    --color-background: #000000;
+    --color-surface: #111411;
+    --color-surface-raised: #171b18;
+    --color-surface-hover: #202722;
+    --color-sidebar: #050705;
+
+    --color-text: #ffffff;
+    --color-text-secondary: #c0c9c3;
+    --color-muted: #8e9692;
+    --color-border: #242b26;
+
+    --color-primary: #22e85c;
+    --color-primary-hover: #43f174;
+    --color-primary-soft: #133d22;
+    --color-primary-border: #285c38;
+    --color-on-primary: #08140c;
+
+    --color-error: #ff7b84;
+    --color-error-surface: #2a1719;
+    --color-error-border: #593034;
+
+    --color-code-background: #202722;
+    --color-code-text: #9af0b0;
+
+    --color-overlay: rgba(0, 0, 0, 0.65);
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Explicit light theme selection. */
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Explicit dark theme selection. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-background: #000000;
+  --color-surface: #111411;
+  --color-surface-raised: #171b18;
+  --color-surface-hover: #202722;
+  --color-sidebar: #050705;
+
+  --color-text: #ffffff;
+  --color-text-secondary: #c0c9c3;
+  --color-muted: #8e9692;
+  --color-border: #242b26;
+
+  --color-primary: #22e85c;
+  --color-primary-hover: #43f174;
+  --color-primary-soft: #133d22;
+  --color-primary-border: #285c38;
+  --color-on-primary: #08140c;
+
+  --color-error: #ff7b84;
+  --color-error-surface: #2a1719;
+  --color-error-border: #593034;
+
+  --color-code-background: #202722;
+  --color-code-text: #9af0b0;
+
+  --color-overlay: rgba(0, 0, 0, 0.65);
+  --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.25);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================
+   3. GLOBAL RESET AND BASE STYLES
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--color-background);
+}
+
+body {
+  position: relative;
+  isolation: isolate;
+
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  color: var(--color-text);
+  background: var(--color-background);
+
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* =========================================================
+   4. AMBIENT EMERALD LIGHTING
+   ========================================================= */
+
+/*
+ * A large radial gradient creates a soft light source at the
+ * top-center of the viewport.
+ *
+ * The glow is intentionally diffuse: it should feel atmospheric,
+ * not like a sharply visible green circle.
+ */
+
+body::before {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  pointer-events: none;
+
+  background: radial-gradient(
+    ellipse 85% 55% at 50% 0%,
+    rgba(34, 138, 69, 0.13) 0%,
+    rgba(34, 138, 69, 0.055) 35%,
+    rgba(245, 248, 245, 0) 75%
+  );
+}
+
+/* Stronger emerald lighting for the system dark theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) body::before {
+    background: radial-gradient(
+      ellipse 85% 55% at 50% 0%,
+      rgba(34, 232, 92, 0.22) 0%,
+      rgba(19, 61, 34, 0.12) 35%,
+      rgba(0, 0, 0, 0) 75%
+    );
+  }
+}
+
+/* Explicit dark theme glow. */
+:root[data-theme="dark"] body::before {
+  background: radial-gradient(
+    ellipse 85% 55% at 50% 0%,
+    rgba(34, 232, 92, 0.22) 0%,
+    rgba(19, 61, 34, 0.12) 35%,
+    rgba(0, 0, 0, 0) 75%
+  );
+}
+
+/* Explicit light theme glow. */
+:root[data-theme="light"] body::before {
+  background: radial-gradient(
+    ellipse 85% 55% at 50% 0%,
+    rgba(34, 138, 69, 0.13) 0%,
+    rgba(34, 138, 69, 0.055) 35%,
+    rgba(245, 248, 245, 0) 75%
+  );
+}
+
+/* =========================================================
+   5. CINEMATIC FILM-GRAIN TEXTURE
+   ========================================================= */
+
+/*
+ * SVG feTurbulence generates procedural monochromatic noise.
+ *
+ * The texture:
+ * - Uses multiple noise octaves for a more organic film appearance.
+ * - Is deliberately low-opacity to avoid reducing text readability.
+ * - Fades toward the bottom of the viewport.
+ * - Sits behind #root, never over cards or typography.
+ *
+ * Increase opacity slightly if you want more visible grain.
+ */
+
+body::after {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  pointer-events: none;
+
+  opacity: 0.045;
+
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='film'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' seed='12' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23film)' opacity='.75'/%3E%3C/svg%3E");
+
+  background-repeat: repeat;
+  background-size: 180px 180px;
+
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 20%,
+    rgba(0, 0, 0, 0.35) 48%,
+    transparent 72%
+  );
+
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0.85) 20%,
+    rgba(0, 0, 0, 0.35) 48%,
+    transparent 72%
+  );
+}
+
+/* Slightly stronger grain visibility on a pitch-black canvas. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) body::after {
+    opacity: 0.05;
+  }
+}
+
+:root[data-theme="dark"] body::after {
+  opacity: 0.05;
+}
+
+/* =========================================================
+   6. APPLICATION LAYER
+   ========================================================= */
+
+/*
+ * The application is placed above both background pseudo-elements.
+ * This ensures the grain never overlays buttons, text, or cards.
+ */
+
+#root {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* =========================================================
+   7. ACCESSIBILITY
+   ========================================================= */
+
+::selection {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
