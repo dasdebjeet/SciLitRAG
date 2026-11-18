@@ -180,3 +180,117 @@ def test_unknown_numeric_source_citation_is_marked_unverified() -> None:
 
     assert answer == "The paper reports this finding [unverified citation: 9]."
     assert resolved == []
+
+
+def test_build_retrieval_query_includes_recent_conversation() -> None:
+    """Follow-up references should be accompanied by recent conversation context."""
+
+    history = [
+        {"role": "user", "content": "What method does the paper propose?"},
+        {"role": "assistant", "content": "It proposes a transformer-based method."},
+    ]
+
+    query = answer_pipeline.build_retrieval_query(
+        question="What are its limitations?",
+        history=history,
+    )
+
+    assert "USER: What method does the paper propose?" in query
+    assert "ASSISTANT: It proposes a transformer-based method." in query
+    assert "CURRENT RESEARCH QUESTION:" in query
+    assert "What are its limitations?" in query
+
+
+def test_build_retrieval_query_without_history_returns_question() -> None:
+    """A first-turn research question should remain unchanged."""
+
+    question = "Explain the proposed research methodology."
+
+    assert answer_pipeline.build_retrieval_query(question) == question
+
+
+def test_build_user_prompt_separates_history_from_fresh_evidence() -> None:
+    """Conversation history must be contextual, not treated as research evidence."""
+
+    assembled_context = MagicMock()
+    assembled_context.context = "[1] Fresh evidence from the current retrieval."
+
+    history = [
+        {"role": "user", "content": "What method does the paper propose?"},
+        {"role": "assistant", "content": "It uses a transformer."},
+    ]
+
+    prompt = answer_pipeline.build_user_prompt(
+        question="What are its limitations?",
+        assembled_context=assembled_context,
+        history=history,
+    )
+
+    assert "USER: What method does the paper propose?" in prompt
+    assert "ASSISTANT: It uses a transformer." in prompt
+    assert "What are its limitations?" in prompt
+    assert "[1] Fresh evidence from the current retrieval." in prompt
+    assert "They are not scientific evidence" in prompt
+    assert "Previous assistant responses and their citations are not evidence." in prompt
+
+
+def test_answer_uses_context_aware_query_for_retrieval_and_reranking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Follow-up context should reach both retrieval stages without losing paper scope."""
+
+    mock_hybrid = MagicMock()
+    mock_hybrid.search.return_value = [
+        {"chunk_id": "test-chunk-001", "text": "A retrieved research passage."}
+    ]
+
+    mock_reranker = MagicMock()
+    # Returning no ranked candidates lets this test stop before generator loading.
+    mock_reranker.rerank.return_value = []
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "HybridRetriever",
+        lambda **kwargs: mock_hybrid,
+    )
+    monkeypatch.setattr(
+        answer_pipeline,
+        "CrossEncoderReranker",
+        lambda **kwargs: mock_reranker,
+    )
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    history = [
+        {"role": "user", "content": "What method does this paper propose?"},
+        {"role": "assistant", "content": "It proposes a transformer-based method."},
+    ]
+
+    question = "What are its limitations?"
+    arxiv_id = "2611.17111"
+
+    result = pipeline.answer(
+        question=question,
+        arxiv_id=arxiv_id,
+        history=history,
+    )
+
+    expected_query = answer_pipeline.build_retrieval_query(
+        question=question,
+        history=history,
+    )
+
+    # Both retrieval stages must receive the same context-aware query.
+    assert mock_hybrid.search.call_args.kwargs["query"] == expected_query
+    assert mock_reranker.rerank.call_args.kwargs["query"] == expected_query
+
+    # The selected paper scope must remain active for follow-up questions.
+    assert mock_hybrid.search.call_args.kwargs["arxiv_id"] == arxiv_id
+
+    # Retrieval resources must be released before generation is considered.
+    mock_reranker.close.assert_called_once()
+    mock_hybrid.close.assert_called_once()
+
+    # No ranked evidence means generation should not be initialized.
+    assert result.citations == []
+    assert result.context_token_count == 0

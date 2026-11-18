@@ -210,36 +210,95 @@ class AnswerResult:
     context_token_count: int
 
 
+
 # ---------------------------------------------------------------------------
 # Prompt Construction
 # ---------------------------------------------------------------------------
 
+def build_retrieval_query(
+    question: str,
+    history: list[dict[str, str]] | None = None,
+) -> str:
+    """Build a context-aware query for fresh research retrieval.
+
+    Recent conversation messages help resolve references in follow-up
+    questions. The current question remains explicit so that historical
+    content does not replace the user's latest intent.
+
+    The query is deliberately bounded to prevent long conversations from
+    overwhelming the retrieval signal.
+    """
+
+    if not history:
+        return question
+
+    recent_messages = history[-4:]
+
+    conversation_context = "\n".join(
+        f"{message['role'].upper()}: {message['content'][:500]}"
+        for message in recent_messages
+    )
+
+    return (
+        "RECENT CONVERSATION:\n"
+        f"{conversation_context}\n\n"
+        "CURRENT RESEARCH QUESTION:\n"
+        f"{question}"
+    )
+
+
 def build_user_prompt(
     question: str,
     assembled_context: AssembledContext,
+    history: list[dict[str, str]] | None = None,
 ) -> str:
-    """Construct the user prompt using the question and assembled evidence.
+    """Construct the generation prompt using conversation and fresh evidence.
 
-    The context builder is responsible for formatting the passages and
-    assigning their evidence identifiers. This function does not create
-    or modify those identifiers.
+    Conversation history helps interpret the user's intent but is not
+    scientific evidence. Only passages assembled for the current request
+    may support factual claims and citations.
     """
 
+    conversation_context = "No previous conversation."
+
+    if history:
+        conversation_context = "\n".join(
+            f"{message['role'].upper()}: {message['content']}"
+            for message in history[-8:]
+        )
+
     return f"""
-USER QUESTION:
+CONVERSATION HISTORY:
+The following messages provide context for interpreting the current
+question. They are not scientific evidence and must not be treated as
+verified research findings.
+
+{conversation_context}
+
+CURRENT USER QUESTION:
 {question}
 
-RESEARCH EVIDENCE:
+FRESHLY RETRIEVED RESEARCH EVIDENCE:
 {assembled_context.context}
 
 INSTRUCTIONS:
-Answer the question using the research evidence above.
+Use the conversation history to understand references, follow-up questions,
+and the user's intended topic.
 
-Cite factual claims with the exact evidence identifiers shown in the passages.
-If evidence is insufficient, explicitly state the limitation.
+Answer the current question using the freshly retrieved research evidence.
 
-Do not cite sources that are not included in the supplied evidence.
+Cite factual claims with the exact evidence identifiers shown in the
+freshly retrieved passages.
+
+Previous assistant responses and their citations are not evidence.
+Do not reuse citations from previous responses unless the corresponding
+evidence is present in the freshly retrieved passages.
+
+If the fresh evidence is insufficient, explicitly state the limitation.
+
+Do not cite sources that are not included in the freshly retrieved evidence.
 """
+
 
 
 # ---------------------------------------------------------------------------
@@ -353,6 +412,7 @@ class AnswerPipeline:
         self,
         question: str,
         arxiv_id: str | None = None,
+        history: list[dict[str, str]] | None = None,
     ) -> AnswerResult:
         """Answer a question using direct chat or the grounded RAG pipeline.
 
@@ -367,6 +427,14 @@ class AnswerPipeline:
             raise ValueError("Question cannot be empty.")
 
         question = question.strip()
+        history = history or []
+
+        # Build a retrieval query that can resolve references in follow-up
+        # questions while retaining the user's latest question explicitly.
+        retrieval_query = build_retrieval_query(
+            question=question,
+            history=history,
+        )
 
         # ---------------------------------------------------------------
         # Stage 0: General conversation without research retrieval
@@ -374,7 +442,11 @@ class AnswerPipeline:
 
         # An explicit arXiv filter indicates that the caller wants a
         # paper-scoped research answer, so preserve the normal RAG path.
-        if arxiv_id is None and is_general_conversation(question):
+        if (
+            not history
+            and arxiv_id is None
+            and is_general_conversation(question)
+        ):
             LOGGER.info(
                 "General conversation detected. Skipping research retrieval."
             )
@@ -424,7 +496,7 @@ class AnswerPipeline:
             hybrid = HybridRetriever(**hybrid_kwargs)
 
             candidates = hybrid.search(
-                query=question,
+                query=retrieval_query,
                 top_k=self.retrieval_k,
                 retrieval_k=self.retrieval_k,
                 arxiv_id=arxiv_id,
@@ -450,7 +522,7 @@ class AnswerPipeline:
                 )
 
                 ranked_candidates = reranker.rerank(
-                    query=question,
+                    query=retrieval_query,
                     candidates=candidates,
                     top_k=self.top_k,
                 )
@@ -534,6 +606,7 @@ class AnswerPipeline:
             prompt = build_user_prompt(
                 question=question,
                 assembled_context=assembled_context,
+                history=history,
             )
 
             LOGGER.info("Generating research answer.")

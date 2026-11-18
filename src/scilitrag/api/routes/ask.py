@@ -60,6 +60,10 @@ def ask_question(
             result = pipeline.answer(
                 question=request.question,
                 arxiv_id=request.arxiv_id,
+                history=[
+                    message.model_dump()
+                    for message in request.history
+                ],
             )
 
         # Convert internal Evidence objects into API response models.
