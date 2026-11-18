@@ -25,6 +25,8 @@
 [Evaluation](#evaluation) •
 [Roadmap](#roadmap)
 
+<img src="docs/images/scilitrag_ui.png" alt="SciLitRAG Application UI" width="100%">
+
 </div>
 
 ---
