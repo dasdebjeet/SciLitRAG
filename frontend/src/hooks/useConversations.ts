@@ -89,33 +89,34 @@ export function useConversations() {
     }
   }, [conversations]);
 
-  /**
-   * Creates and immediately activates an empty conversation.
-   * Paper metadata is captured as a snapshot for future restoration.
-   */
-  const createConversation = useCallback(
-    (arxivId: string | null = null, paperTitle: string | null = null) => {
-      const now = new Date().toISOString();
+    /**
+     * Creates and immediately activates a conversation.
+     * Called when the user sends the first message, not when they click New Chat.
+     * Paper metadata is captured as a snapshot for future restoration.
+     */
+    const createConversation = useCallback(
+      (arxivId: string | null = null, paperTitle: string | null = null) => {
+        const now = new Date().toISOString();
 
-      const conversation: Conversation = {
-        id: generateId(),
-        title: "New chat",
-        messages: [],
-        arxivId,
-        paperTitle,
-        createdAt: now,
-        updatedAt: now,
-      };
+        const conversation: Conversation = {
+          id: generateId(),
+          title: "New chat",
+          messages: [],
+          arxivId,
+          paperTitle,
+          createdAt: now,
+          updatedAt: now,
+        };
 
-      setConversations((previous) =>
-        sortConversations([conversation, ...previous]),
-      );
-      setActiveConversationId(conversation.id);
+        setConversations((previous) =>
+          sortConversations([conversation, ...previous]),
+        );
+        setActiveConversationId(conversation.id);
 
-      return conversation;
-    },
-    [],
-  );
+        return conversation;
+      },
+      [],
+    );
 
   /**
    * Activates an existing conversation without modifying its messages.
@@ -124,7 +125,7 @@ export function useConversations() {
    * untouched.
    */
   const selectConversation = useCallback(
-    (conversationId: string) => {
+    (conversationId: string | null) => {
       setActiveConversationId(conversationId);
     },
     [],

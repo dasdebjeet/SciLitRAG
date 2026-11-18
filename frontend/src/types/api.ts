@@ -7,6 +7,17 @@
  */
 
 /**
+ * A previous message supplied as context for a multi-turn RAG request.
+ *
+ * Only the role and text content are sent; frontend IDs, timestamps,
+ * and assistant citation metadata are not needed by the backend.
+ */
+export interface ConversationHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/**
  * Payload submitted to POST /api/v1/ask.
  *
  * arxiv_id is optional because the backend supports unrestricted
@@ -15,6 +26,7 @@
 export interface AskRequest {
   question: string;
   arxiv_id?: string | null;
+  history: ConversationHistoryMessage[];
 }
 
 /**

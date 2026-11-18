@@ -212,23 +212,28 @@ function App() {
     updatePaperScope,
   } = useConversations();
 
+  // Stores the question currently being entered in the editable prompt.
+  const [question, setQuestion] = useState("");
+
+  // Holds the paper scope for a new, unsaved chat draft.
+  const [draftPaper, setDraftPaper] = useState<Paper | null>(null);
+
+  const questionEditorRef = useRef<HTMLDivElement>(null);
+
   /**
-   * Restore the paper context from the active conversation.
+   * Restore paper scope from a saved conversation or the current unsaved draft.
    *
-   * Only the paper ID and title are required by the current chat interface.
-   * The conversation stores these values as a metadata snapshot.
+   * An active saved conversation takes priority. Otherwise, the paper
+   * selected for the unsaved draft is used until its first message is sent.
    */
-  const selectedPaper =
-    activeConversation?.arxivId
+  const selectedPaper = activeConversation
+    ? activeConversation.arxivId
       ? {
           arxiv_id: activeConversation.arxivId,
           title: activeConversation.paperTitle ?? "Selected paper",
         }
-      : null;
-
-  // Stores the question currently being entered in the editable prompt.
-  const [question, setQuestion] = useState("");
-  const questionEditorRef = useRef<HTMLDivElement>(null);
+      : null
+    : draftPaper;
 
   /**
    * Synchronize the editable DOM surface when the question is reset
@@ -249,13 +254,14 @@ function App() {
   const [error, setError] = useState("");
 
   /**
-   * Create a fresh unrestricted conversation.
+   * Start a new, unsaved conversation draft.
    *
-   * The conversation hook handles its ID, timestamps, and persistence.
+   * No conversation is created or persisted until the user submits
+   * the first message.
    */
   function handleNewChat() {
-    createConversation();
-
+    selectConversation(null);
+    setDraftPaper(null);
     setQuestion("");
     setError("");
     setCurrentView("chat");
@@ -273,24 +279,25 @@ function App() {
 
   /**
    * Restore a saved conversation and return to the chat workspace.
-   * The conversation hook resolves its messages and paper context
-   * from the selected conversation.
+   * Any unsaved draft paper context is discarded.
    */
   function handleSelectConversation(conversationId: string) {
     selectConversation(conversationId);
+    setDraftPaper(null);
     setQuestion("");
     setError("");
     setCurrentView("chat");
   }
 
   /**
-   * Start a new conversation scoped to the selected research paper.
+   * Start an unsaved conversation scoped to the selected research paper.
    *
-   * The selected paper is stored in the new conversation so its context
-   * can be restored when conversation history navigation is implemented.
+   * The paper metadata remains in draft state until the first question
+   * creates a persisted conversation.
    */
   function handleStartResearch(paper: Paper) {
-    createConversation(paper.arxiv_id, paper.title);
+    selectConversation(null);
+    setDraftPaper(paper);
 
     setQuestion("");
     setError("");
@@ -298,25 +305,25 @@ function App() {
   }
 
   /**
-   * Remove the paper filter from the active conversation.
+   * Remove the paper filter from the active conversation or unsaved draft.
    *
-   * This does not delete previous messages or citations.
+   * Existing messages and citations are preserved.
    */
   function handleClearPaperScope() {
-    if (!activeConversationId) {
-      return;
+    if (activeConversationId) {
+      updatePaperScope(activeConversationId, null, null);
+    } else {
+      setDraftPaper(null);
     }
 
-    updatePaperScope(activeConversationId, null, null);
     setError("");
   }
 
   /**
    * Submit a research question to the FastAPI backend.
    *
-   * Both the user question and assistant response are persisted as messages.
-   * Previous messages are not yet included in the backend request; multi-turn
-   * RAG context requires a separate backend implementation.
+   * The first submitted message creates and persists a conversation.
+   * Subsequent messages reuse the active conversation and its history.
    */
   async function handleAskQuestion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -329,8 +336,10 @@ function App() {
     }
 
     /**
-     * Reuse the active conversation or create one when the user submits
-     * their first question without explicitly starting a new chat.
+     * Reuse the active conversation or create one when this is the
+     * first message in a new draft.
+     *
+     * The selected paper metadata is copied into the persisted conversation.
      */
     const conversation =
       activeConversation ??
@@ -338,6 +347,19 @@ function App() {
         selectedPaper?.arxiv_id ?? null,
         selectedPaper?.title ?? null,
       );
+
+    // The draft has now become a persisted conversation.
+    setDraftPaper(null);
+
+    // Keep recent conversation context without resending excessively long answers.
+    // History is used to understand follow-up questions, not as scientific evidence.
+    const history = conversation.messages.slice(-12).map((message) => ({
+      role: message.role,
+      content:
+        message.content.length > 2000
+          ? `${message.content.slice(0, 2000)}\n[Message truncated for conversation context]`
+          : message.content,
+    }));
 
     // Persist the user's question before starting backend inference.
     const userMessage: UserMessage = {
@@ -354,11 +376,11 @@ function App() {
     setError("");
 
     try {
-      // Send the current question and its optional paper scope.
-      // Conversation history is intentionally not sent to the backend yet.
+      // Send the current question, its paper scope, and recent conversation context.
       const result = await askQuestion({
         question: trimmedQuestion,
         arxiv_id: conversation.arxivId,
+        history,
       });
 
       // Keep the answer and its evidence together for reliable restoration.

@@ -41,7 +41,7 @@
 
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-sidebar) 88%, transparent);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: 22px;
   box-shadow: var(--shadow-card);
 
@@ -272,7 +272,7 @@
 .message-transcript {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 25px;
   width: 100%;
   min-width: 0;
 }
@@ -283,6 +283,7 @@
   flex-direction: column;
   align-items: flex-end;
   align-self: flex-end;
+  margin-top: 30px;
   width: fit-content;
   max-width: min(78%, 760px);
   gap: 6px;
@@ -329,6 +330,10 @@
   margin-bottom: 24px;
 }
 
+.answer-container .message-timestamp{
+  margin-bottom: 6px;
+}
+
 .answer-section-title {
   margin: 0 0 16px;
   color: var(--color-text);
@@ -353,7 +358,7 @@
 
   color: var(--color-text-secondary);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
 
@@ -788,7 +793,7 @@
 .citations-list {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 30px;
 }
 
 .citation-card {
