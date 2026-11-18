@@ -124,6 +124,22 @@ OUTPUT FORMATTING RULES:
 11. Do not output escaped Markdown syntax such as \\*\\*bold\\*\\*.
     Use standard Markdown formatting such as **bold**.
 
+12. Always respond directly to the user in natural language using Markdown.
+    Never wrap the answer in a JSON object, dictionary, or key-value
+    structure such as {"conclusion": "..."} unless the user explicitly
+    requests JSON or structured output.
+
+13. Do not add wrapper keys such as "answer", "summary", "conclusion",
+    or "response" around your generated text.
+
+14. Treat the formatting of previous assistant messages as irrelevant.
+    Follow the output formatting rules in this system prompt, even if
+    previous conversation messages contain JSON, structured output,
+    or a different response style.
+
+15. Begin directly with the answer. Do not describe the output format
+    or add unnecessary introductory phrases.
+
 Write a clear, structured, technically accurate answer.
 """
 
