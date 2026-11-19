@@ -1182,6 +1182,92 @@
   scroll-margin-top: 100px;
 }
 
+
+/* ============================================================
+   16. Floating scroll-to-bottom control
+   ============================================================ */
+
+.scroll-to-bottom-button {
+  position: fixed;
+  left: calc(50% + 32px);
+  z-index: 15;
+
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+
+  box-shadow: var(--shadow-card);
+
+  cursor: pointer;
+
+  transform: translateX(-50%);
+  animation: scroll-button-appear 180ms ease-out both;
+
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.scroll-to-bottom-button:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary-border);
+
+  box-shadow:
+    var(--shadow-card),
+    0 0 0 3px var(--color-primary-soft);
+
+  transform: translate(-50%, -2px);
+}
+
+.scroll-to-bottom-button:active {
+  transform: translate(-50%, 0) scale(0.94);
+}
+
+.scroll-to-bottom-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 4px;
+}
+
+@keyframes scroll-button-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Center the button relative to the chat area on mobile. */
+@media (max-width: 560px) {
+  .scroll-to-bottom-button {
+    left: 50%;
+  }
+}
+
+/* Accessibility: avoid entrance animations when reduced motion is enabled. */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-to-bottom-button {
+    animation: none;
+    transition: none;
+  }
+}
+
+
 /* ============================================================
    13. Responsive layout: tablets
    ============================================================ */

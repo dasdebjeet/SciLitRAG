@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { BookOpen, X, ArrowRight } from "lucide-react";
+import { BookOpen, X, ArrowRight, ArrowDown } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 // KaTeX styles are required to display formatted mathematical expressions.
@@ -220,7 +220,20 @@ function App() {
   // Holds the paper scope for a new, unsaved chat draft.
   const [draftPaper, setDraftPaper] = useState<Paper | null>(null);
 
+  // References the editable prompt, sticky composer, and message transcript.
   const questionEditorRef = useRef<HTMLDivElement>(null);
+  const questionFormRef = useRef<HTMLFormElement>(null);
+  const messageTranscriptRef = useRef<HTMLDivElement>(null);
+
+  // Controls the visibility and vertical position of the floating scroll button.
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [scrollButtonBottom, setScrollButtonBottom] = useState(180);
+
+  // Tracks whether a request is currently being processed.
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Stores a user-friendly error message when a request fails.
+  const [error, setError] = useState("");
 
   /**
    * Restore paper scope from a saved conversation or the current unsaved draft.
@@ -238,6 +251,92 @@ function App() {
     : draftPaper;
 
   /**
+   * Monitor document scrolling and chat layout changes.
+   *
+   * The application uses normal document scrolling rather than an
+   * independently scrollable message container. Measuring the document
+   * preserves the existing page layout and scrolling behavior.
+   */
+  useEffect(() => {
+    if (currentView !== "chat") {
+      setShowScrollToBottom(false);
+      return;
+    }
+
+    function updateScrollButton() {
+      const viewportBottom = window.scrollY + window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      // Only show the button when the user is meaningfully away from the bottom.
+      setShowScrollToBottom(documentHeight - viewportBottom > 180);
+
+      // Keep the button just above the sticky composer.
+      const composerTop =
+        questionFormRef.current?.getBoundingClientRect().top;
+
+      if (composerTop !== undefined) {
+        const nextBottom = Math.max(
+          100,
+          window.innerHeight - composerTop + 12,
+        );
+
+        setScrollButtonBottom((previous) =>
+          Math.abs(previous - nextBottom) > 1 ? nextBottom : previous,
+        );
+      }
+    }
+
+    // Calculate the initial visibility and position.
+    updateScrollButton();
+
+    // Track page scrolling and viewport resizing.
+    window.addEventListener("scroll", updateScrollButton, { passive: true });
+    window.addEventListener("resize", updateScrollButton);
+
+    // Observe content changes that can move the composer or page bottom.
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(updateScrollButton)
+        : null;
+
+    if (questionFormRef.current) {
+      resizeObserver?.observe(questionFormRef.current);
+    }
+
+    if (messageTranscriptRef.current) {
+      resizeObserver?.observe(messageTranscriptRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("scroll", updateScrollButton);
+      window.removeEventListener("resize", updateScrollButton);
+      resizeObserver?.disconnect();
+    };
+  }, [
+    currentView,
+    activeConversation?.messages.length,
+    isLoading,
+    selectedPaper?.arxiv_id,
+  ]);
+
+  /**
+   * Scroll to the latest conversation content.
+   *
+   * Respect the operating system's reduced-motion accessibility preference
+   * instead of forcing smooth animation for users who have disabled motion.
+   */
+  function handleScrollToBottom() {
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }
+
+  /**
    * Synchronize the editable DOM surface when the question is reset
    * programmatically, such as when starting a new conversation.
    */
@@ -248,12 +347,6 @@ function App() {
       editor.innerText = question;
     }
   }, [question]);
-
-  // Tracks whether a request is currently being processed.
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Stores a user-friendly error message when a request fails.
-  const [error, setError] = useState("");
 
   /**
    * Start a new, unsaved conversation draft.
@@ -442,14 +535,14 @@ function App() {
 
         {currentView === "library" ? (
           <PaperLibrary onStartResearch={handleStartResearch} />
-          ) : currentView === "conversations" ? (
+        ) : currentView === "conversations" ? (
           <ConversationList
-              conversations={conversations}
-              onSelectConversation={handleSelectConversation}
-              onRenameConversation={renameConversation}
-              onDeleteConversation={deleteConversation}
-            />
-          ) : (
+            conversations={conversations}
+            onSelectConversation={handleSelectConversation}
+            onRenameConversation={renameConversation}
+            onDeleteConversation={deleteConversation}
+          />
+        ) : (
           <section className="chat-workspace">
             {/* Show the welcome state only for a genuinely empty conversation. */}
             {(!activeConversation || activeConversation.messages.length === 0) &&
@@ -466,7 +559,10 @@ function App() {
               )}
 
             {/* Render every saved message in chronological order. */}
-            <div className="message-transcript">
+            <div
+              ref={messageTranscriptRef}
+              className="message-transcript"
+            >
               {activeConversation?.messages.map((message) =>
                 message.role === "user" ? (
                   <article className="user-message" key={message.id}>
@@ -487,18 +583,35 @@ function App() {
               </div>
             )}
 
+            {/* Floating control for navigating long conversations. */}
+            {showScrollToBottom && (
+              <button
+                type="button"
+                className="scroll-to-bottom-button"
+                onClick={handleScrollToBottom}
+                aria-label="Scroll to latest message"
+                title="Scroll to bottom"
+                style={{ bottom: `${scrollButtonBottom}px` }}
+              >
+                <ArrowDown size={20} strokeWidth={2.2} />
+              </button>
+            )}
+
             {error && (
               <div className="error-message" role="alert">
                 {error}
               </div>
             )}
 
-            <form className="question-form" onSubmit={handleAskQuestion}>
+            <form
+              ref={questionFormRef}
+              className="question-form"
+              onSubmit={handleAskQuestion}
+            >
               {/*
                * Keep the selected-paper context inside the sticky composer.
                * This makes the context tab move with the question input.
                */}
-
               {selectedPaper && (
                 <div className="research-scope">
                   {/* First line: context label and circular close control. */}
