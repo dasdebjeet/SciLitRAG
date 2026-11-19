@@ -1,10 +1,15 @@
 
+import { useState, type FormEvent, type KeyboardEvent } from "react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
+
 import "./ConversationList.css";
 import type { Conversation } from "../../types/conversation";
 
 interface ConversationListProps {
   conversations: Conversation[];
   onSelectConversation: (conversationId: string) => void;
+  onRenameConversation: (conversationId: string, title: string) => void;
+  onDeleteConversation: (conversationId: string) => void;
 }
 
 /** Groups conversations by their most recent activity date. */
@@ -15,7 +20,7 @@ type ConversationGroup = {
 
 /**
  * Returns the calendar-day difference between a date and today.
- * Normalizing to local midnight avoids incorrect grouping around midnight.
+ * Local midnight normalization avoids timezone-related grouping errors.
  */
 function getCalendarDayDifference(date: Date): number {
   const today = new Date();
@@ -38,7 +43,7 @@ function getCalendarDayDifference(date: Date): number {
   );
 }
 
-/** Formats the activity timestamp for compact display. */
+/** Formats the exact activity time shown beside the conversation metadata. */
 function formatActivityDate(timestamp: string): string {
   const date = new Date(timestamp);
 
@@ -48,26 +53,71 @@ function formatActivityDate(timestamp: string): string {
 
   const dayDifference = getCalendarDayDifference(date);
 
+  const time = date.toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
   if (dayDifference === 0) {
-    return date.toLocaleTimeString([], {
+    return time;
+  }
+
+  if (dayDifference === 1) {
+    return `Yesterday, ${time}`;
+  }
+
+  if (dayDifference <= 7) {
+    return date.toLocaleDateString([], {
+      weekday: "long",
       hour: "numeric",
       minute: "2-digit",
     });
   }
 
-  if (dayDifference === 1) {
-    return "Yesterday";
-  }
-
   return date.toLocaleDateString([], {
     day: "numeric",
     month: "short",
+    year: "numeric",
   });
+}
+
+/** Describes how recently a conversation was updated. */
+function formatRelativeActivity(timestamp: string): string {
+  const date = new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Activity unavailable";
+  }
+
+  const elapsedMilliseconds = Math.max(0, Date.now() - date.getTime());
+  const elapsedMinutes = Math.floor(elapsedMilliseconds / 60_000);
+
+  if (elapsedMinutes < 1) {
+    return "Updated just now";
+  }
+
+  if (elapsedMinutes < 60) {
+    return `Updated ${elapsedMinutes} min ago`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+
+  if (elapsedHours < 24) {
+    return `Updated ${elapsedHours} hr ago`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+
+  if (elapsedDays === 1) {
+    return "Updated yesterday";
+  }
+
+  return `Updated ${elapsedDays} days ago`;
 }
 
 /**
  * Organizes conversations into date-based sections.
- * The input is expected to be sorted newest-first by the conversation hook.
+ * The conversation hook is expected to sort them newest-first.
  */
 function groupConversations(
   conversations: Conversation[],
@@ -77,7 +127,6 @@ function groupConversations(
   for (const conversation of conversations) {
     const date = new Date(conversation.updatedAt);
 
-    // Invalid timestamps are safely placed in the Older section.
     const dayDifference = Number.isNaN(date.getTime())
       ? Number.POSITIVE_INFINITY
       : getCalendarDayDifference(date);
@@ -96,7 +145,6 @@ function groupConversations(
     groups.set(label, existing);
   }
 
-  // Keep the sections in a predictable chronological order.
   const sectionOrder = [
     "Today",
     "Yesterday",
@@ -115,8 +163,64 @@ function groupConversations(
 function ConversationList({
   conversations,
   onSelectConversation,
+  onRenameConversation,
+  onDeleteConversation,
 }: ConversationListProps) {
   const groups = groupConversations(conversations);
+
+  // Tracks the conversation currently being renamed.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editedTitle, setEditedTitle] = useState("");
+
+  // Tracks the conversation awaiting deletion confirmation.
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  /** Start editing and close any pending delete confirmation. */
+  function handleStartRename(conversation: Conversation) {
+    setEditingId(conversation.id);
+    setEditedTitle(conversation.title);
+    setConfirmDeleteId(null);
+  }
+
+  /** Save a valid title and exit editing mode. */
+  function handleSaveRename(
+    event: FormEvent<HTMLFormElement>,
+    conversationId: string,
+  ) {
+    event.preventDefault();
+
+    const normalizedTitle = editedTitle.trim();
+
+    if (!normalizedTitle) {
+      return;
+    }
+
+    onRenameConversation(conversationId, normalizedTitle);
+    setEditingId(null);
+    setEditedTitle("");
+  }
+
+  /** Cancel editing without changing the stored title. */
+  function handleCancelRename() {
+    setEditingId(null);
+    setEditedTitle("");
+  }
+
+  /** Allow Escape to cancel the rename operation. */
+  function handleRenameKeyDown(
+    event: KeyboardEvent<HTMLInputElement>,
+  ) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleCancelRename();
+    }
+  }
+
+  /** Delete only after the user explicitly confirms the action. */
+  function handleConfirmDelete(conversationId: string) {
+    onDeleteConversation(conversationId);
+    setConfirmDeleteId(null);
+  }
 
   if (conversations.length === 0) {
     return (
@@ -156,41 +260,165 @@ function ConversationList({
             key={group.label}
             aria-label={group.label}
           >
-            <h3 className="conversation-group-title">
-              {group.label}
-            </h3>
+            <h3 className="conversation-group-title">{group.label}</h3>
 
             <div className="conversation-items">
-              {group.conversations.map((conversation) => (
-                <button
-                  type="button"
-                  className="conversation-item"
-                  key={conversation.id}
-                  onClick={() =>
-                    onSelectConversation(conversation.id)
-                  }
-                >
-                  <span className="conversation-item-content">
-                    <span className="conversation-item-title">
-                      {conversation.title || "New chat"}
-                    </span>
+              {group.conversations.map((conversation) => {
+                const isEditing = editingId === conversation.id;
+                const isConfirmingDelete =
+                  confirmDeleteId === conversation.id;
 
-                    <span className="conversation-item-meta">
-                      {conversation.messages.length}{" "}
-                      {conversation.messages.length === 1
-                        ? "message"
-                        : "messages"}
-                    </span>
-                  </span>
+                const messageCount = conversation.messages.length;
 
-                  <time
-                    className="conversation-item-date"
-                    dateTime={conversation.updatedAt}
+                return (
+                  <article
+                    className="conversation-item"
+                    key={conversation.id}
                   >
-                    {formatActivityDate(conversation.updatedAt)}
-                  </time>
-                </button>
-              ))}
+                    {/* Left side: title and all conversation metadata. */}
+                    <div className="conversation-item-main">
+                      {isEditing ? (
+                        <form
+                          className="conversation-rename-form"
+                          onSubmit={(event) =>
+                            handleSaveRename(event, conversation.id)
+                          }
+                        >
+                          <input
+                            className="conversation-rename-input"
+                            type="text"
+                            value={editedTitle}
+                            onChange={(event) =>
+                              setEditedTitle(event.target.value)
+                            }
+                            onKeyDown={handleRenameKeyDown}
+                            aria-label="Conversation title"
+                            maxLength={120}
+                            autoFocus
+                          />
+                        </form>
+                      ) : (
+                        <button
+                          type="button"
+                          className="conversation-item-select"
+                          onClick={() =>
+                            onSelectConversation(conversation.id)
+                          }
+                          title={conversation.title || "New chat"}
+                        >
+                          <span className="conversation-item-title">
+                            {conversation.title || "New chat"}
+                          </span>
+
+                          <span className="conversation-item-meta">
+                            <span>
+                              {messageCount}{" "}
+                              {messageCount === 1 ? "message" : "messages"}
+                            </span>
+                            <span aria-hidden="true">·</span>
+                            <span>
+                              {formatRelativeActivity(conversation.updatedAt)}
+                            </span>
+                            <span aria-hidden="true">·</span>
+                            <time dateTime={conversation.updatedAt}>
+                              {formatActivityDate(conversation.updatedAt)}
+                            </time>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Right side: fixed action area prevents row resizing. */}
+                    <div className="conversation-item-actions">
+                      {isEditing ? (
+                        <>
+                          <button
+                            type="button"
+                            className="conversation-action-button"
+                            onClick={(event) => {
+                              const form = event.currentTarget
+                                .closest(".conversation-item")
+                                ?.querySelector("form");
+
+                              form?.requestSubmit();
+                            }}
+                            disabled={!editedTitle.trim()}
+                            aria-label="Save conversation title"
+                            title="Save"
+                          >
+                            <Check size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="conversation-action-button"
+                            onClick={handleCancelRename}
+                            aria-label="Cancel renaming"
+                            title="Cancel"
+                          >
+                            <X size={16} />
+                          </button>
+                        </>
+                      ) : isConfirmingDelete ? (
+                        <div
+                          className="conversation-delete-confirm"
+                          role="group"
+                          aria-label="Confirm conversation deletion"
+                        >
+                          <span className="conversation-delete-prompt">
+                            Delete this conversation?
+                          </span>
+
+                          <button
+                            type="button"
+                            className="conversation-confirm-delete"
+                            onClick={() =>
+                              handleConfirmDelete(conversation.id)
+                            }
+                          >
+                            Yes
+                          </button>
+
+                          <button
+                            type="button"
+                            className="conversation-cancel-delete"
+                            onClick={() => setConfirmDeleteId(null)}
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className="conversation-action-button"
+                            onClick={() => handleStartRename(conversation)}
+                            aria-label={`Rename ${conversation.title}`}
+                            title="Rename conversation"
+                          >
+                            <Pencil size={15} />
+                            <span>Rename</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="conversation-action-button conversation-delete-button"
+                            onClick={() => {
+                              setConfirmDeleteId(conversation.id);
+                              setEditingId(null);
+                            }}
+                            aria-label={`Delete ${conversation.title}`}
+                            title="Delete conversation"
+                          >
+                            <Trash2 size={15} />
+                            <span>Delete</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </section>
         ))}

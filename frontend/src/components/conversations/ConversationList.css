@@ -11,6 +11,7 @@
   width: 100%;
   max-width: 1100px;
   margin: 34px auto 0;
+  min-width: 0;
 }
 
 /* History heading and description. */
@@ -36,12 +37,14 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
+  min-width: 0;
 }
 
 .conversation-group {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 0;
 }
 
 .conversation-group-title {
@@ -57,18 +60,29 @@
 .conversation-items {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
-/* Individual conversation entry. */
+/*
+ * Individual conversation row.
+ *
+ * A fixed minimum height and a reserved action column ensure that
+ * changing between normal actions and delete confirmation does not
+ * increase the row's height or width.
+ */
 .conversation-item {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+
   width: 100%;
   min-width: 0;
-  padding: 16px 18px;
+  min-height: 76px;
+  padding: 14px 18px;
+  box-sizing: border-box;
 
   color: var(--color-text);
   background: var(--color-surface);
@@ -76,52 +90,250 @@
   border-radius: var(--radius-md);
 
   text-align: left;
-  cursor: pointer;
 
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
-    transform 150ms ease,
     box-shadow 150ms ease;
 }
 
 .conversation-item:hover {
   background: var(--color-surface-hover);
   border-color: var(--color-primary-border);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-soft);
 }
 
-.conversation-item:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 3px;
+.conversation-item:focus-within {
+  border-color: var(--color-primary-border);
 }
 
-.conversation-item-content {
+/* Left column: paper title and conversation metadata. */
+.conversation-item-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.conversation-item-select {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   gap: 6px;
+
+  width: 100%;
   min-width: 0;
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+  color: inherit;
+
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.conversation-item-select:hover {
+  color: inherit;
 }
 
 .conversation-item-title {
+  display: block;
+  width: 100%;
   overflow: hidden;
+
   color: var(--color-text);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .conversation-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  max-width: 100%;
+  overflow: hidden;
+
   color: var(--color-muted);
   font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.conversation-item-date {
-  flex-shrink: 0;
+.conversation-item-meta time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Right column: fixed width for Rename/Delete and confirmation controls.
+ * Keeping this width stable prevents layout shifts when Delete is clicked.
+ */
+.conversation-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+
+  flex: 0 0 176px;
+  width: 176px;
+  min-width: 176px;
+  height: 34px;
+
+  opacity: 0.7;
+  transition: opacity 150ms ease;
+}
+
+.conversation-item:hover .conversation-item-actions,
+.conversation-item:focus-within .conversation-item-actions {
+  opacity: 1;
+}
+
+/* Shared action-button styling. */
+.conversation-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 32px;
+  padding: 0 9px;
+  flex: 0 0 auto;
+
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
   color: var(--color-muted);
+
+  font: inherit;
   font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.conversation-action-button:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.conversation-action-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.conversation-action-button:focus-visible,
+.conversation-confirm-delete:focus-visible,
+.conversation-cancel-delete:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.conversation-delete-button:hover:not(:disabled) {
+  color: #e06c75;
+  background: rgba(224, 108, 117, 0.1);
+}
+
+/* Inline title editing. */
+.conversation-rename-form {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.conversation-rename-input {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  box-sizing: border-box;
+
+  border: 1px solid var(--color-primary-border);
+  border-radius: 7px;
+  outline: none;
+
+  background: var(--color-surface);
+  color: var(--color-text);
+
+  font: inherit;
+  font-size: 13px;
+}
+
+.conversation-rename-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(108, 140, 255, 0.15);
+}
+
+/* Compact inline delete confirmation. */
+.conversation-delete-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+
+  width: 100%;
+  height: 32px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.conversation-delete-prompt {
+  margin-right: auto;
+  color: #e06c75;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.conversation-confirm-delete,
+.conversation-cancel-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 29px;
+  min-width: 34px;
+  padding: 0 8px;
+
+  border: 1px solid transparent;
+  border-radius: 6px;
+
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.conversation-confirm-delete {
+  background: rgba(224, 108, 117, 0.14);
+  color: #e06c75;
+}
+
+.conversation-confirm-delete:hover {
+  background: rgba(224, 108, 117, 0.25);
+}
+
+.conversation-cancel-delete {
+  background: var(--color-surface-hover);
+  color: var(--color-muted);
+}
+
+.conversation-cancel-delete:hover {
+  color: var(--color-text);
 }
 
 /* Empty history state. */
@@ -130,6 +342,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   min-height: 260px;
   padding: 32px 20px;
 
@@ -155,8 +368,33 @@
   line-height: 1.6;
 }
 
-/* Compact layout for phones. */
-@media (max-width: 560px) {
+/* Tablet and smaller screens. */
+@media (max-width: 700px) {
+  .conversation-item {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .conversation-item-actions {
+    flex-basis: 150px;
+    width: 150px;
+    min-width: 150px;
+    opacity: 1;
+  }
+
+  .conversation-action-button {
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 11px;
+  }
+
+  .conversation-item-meta {
+    font-size: 11px;
+  }
+}
+
+/* Compact layout for narrow phones. */
+@media (max-width: 480px) {
   .conversation-history {
     margin-top: 22px;
   }
@@ -166,15 +404,47 @@
   }
 
   .conversation-item {
-    gap: 10px;
-    padding: 14px;
+    gap: 6px;
+    padding: 11px 10px;
+  }
+
+  .conversation-item-actions {
+    flex-basis: 82px;
+    width: 82px;
+    min-width: 82px;
+    gap: 2px;
+  }
+
+  .conversation-action-button {
+    width: 36px;
+    height: 30px;
+    padding: 0;
+  }
+
+  .conversation-action-button span {
+    display: none;
+  }
+
+  .conversation-delete-confirm {
+    gap: 3px;
+  }
+
+  .conversation-delete-prompt {
+    display: none;
+  }
+
+  .conversation-confirm-delete,
+  .conversation-cancel-delete {
+    min-width: 35px;
+    padding: 0 5px;
   }
 
   .conversation-item-title {
     font-size: 13px;
   }
 
-  .conversation-item-date {
-    font-size: 11px;
+  .conversation-item-meta {
+    gap: 4px;
+    font-size: 10px;
   }
 }

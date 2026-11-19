@@ -209,7 +209,9 @@ function App() {
     createConversation,
     selectConversation,
     addMessage,
+    renameConversation,
     updatePaperScope,
+    deleteConversation,
   } = useConversations();
 
   // Stores the question currently being entered in the editable prompt.
@@ -440,12 +442,14 @@ function App() {
 
         {currentView === "library" ? (
           <PaperLibrary onStartResearch={handleStartResearch} />
-        ) : currentView === "conversations" ? (
+          ) : currentView === "conversations" ? (
           <ConversationList
-            conversations={conversations}
-            onSelectConversation={handleSelectConversation}
-          />
-        ) : (
+              conversations={conversations}
+              onSelectConversation={handleSelectConversation}
+              onRenameConversation={renameConversation}
+              onDeleteConversation={deleteConversation}
+            />
+          ) : (
           <section className="chat-workspace">
             {/* Show the welcome state only for a genuinely empty conversation. */}
             {(!activeConversation || activeConversation.messages.length === 0) &&
