@@ -13,6 +13,10 @@ import ConversationList from "./components/conversations/ConversationList";
 import Sidebar from "./components/Sidebar";
 import PaperLibrary from "./components/PaperLibrary";
 
+import SettingsPanel, {
+  type ThemePreference,
+} from "./components/SettingsPanel";
+
 import { useConversations } from "./hooks/useConversations";
 import type {
   AssistantMessage,
@@ -212,6 +216,7 @@ function App() {
     renameConversation,
     updatePaperScope,
     deleteConversation,
+    clearAllConversations,
   } = useConversations();
 
   // Stores the question currently being entered in the editable prompt.
@@ -250,6 +255,44 @@ function App() {
       : null
     : draftPaper;
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Restore the user's saved theme preference; fall back to system settings.
+  const [themePreference, setThemePreference] = useState<ThemePreference>(() => {
+    try {
+      const savedTheme = window.localStorage.getItem("scilitrag-theme");
+
+      if (
+        savedTheme === "light" ||
+        savedTheme === "dark" ||
+        savedTheme === "system"
+      ) {
+        return savedTheme;
+      }
+    } catch (error) {
+      console.warn("Unable to read the saved theme preference.", error);
+    }
+
+    return "system";
+  });
+
+  // Explicit themes override the OS preference. System removes the override.
+  useEffect(() => {
+    const root = document.documentElement;
+
+    if (themePreference === "system") {
+      root.removeAttribute("data-theme");
+    } else {
+      root.setAttribute("data-theme", themePreference);
+    }
+
+    try {
+      window.localStorage.setItem("scilitrag-theme", themePreference);
+    } catch (error) {
+      console.warn("Unable to save the theme preference.", error);
+    }
+  }, [themePreference]);
+
   /**
    * Monitor document scrolling and chat layout changes.
    *
@@ -258,8 +301,9 @@ function App() {
    * preserves the existing page layout and scrolling behavior.
    */
   useEffect(() => {
+    // Scroll tracking is only needed while the chat view is visible.
+    // Button visibility is derived from currentView in the render below.
     if (currentView !== "chat") {
-      setShowScrollToBottom(false);
       return;
     }
 
@@ -506,7 +550,19 @@ function App() {
         onNewChat={handleNewChat}
         onShowLibrary={handleShowLibrary}
         onShowConversations={handleShowConversations}
+        onToggleSettings={() => setIsSettingsOpen((open) => !open)}
         activeView={currentView}
+        settingsOpen={isSettingsOpen}
+      />
+
+      <SettingsPanel
+        key={isSettingsOpen ? "settings-open" : "settings-closed"}
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        theme={themePreference}
+        onThemeChange={setThemePreference}
+        conversationCount={conversations.length}
+        onClearConversations={clearAllConversations}
       />
 
       <main className="main-content">
@@ -584,7 +640,7 @@ function App() {
             )}
 
             {/* Floating control for navigating long conversations. */}
-            {showScrollToBottom && (
+            {currentView === "chat" && showScrollToBottom && (
               <button
                 type="button"
                 className="scroll-to-bottom-button"

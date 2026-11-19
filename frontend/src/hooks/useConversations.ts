@@ -1,3 +1,4 @@
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { ChatMessage, Conversation } from "../types/conversation";
@@ -64,6 +65,16 @@ export function useConversations() {
 
   const [storageError, setStorageError] = useState<string | null>(null);
 
+  /*
+   * Clears the complete conversation history and resets the active selection.
+   * The persistence effect will save the empty collection.
+   * Paper Library storage is managed separately and remains untouched.
+   */
+  const clearAllConversations = useCallback(() => {
+    setConversations([]);
+    setActiveConversationId(null);
+  }, []);
+
   /** Resolve the active conversation from the current conversation list. */
   const activeConversation = useMemo(
     () =>
@@ -80,6 +91,10 @@ export function useConversations() {
   useEffect(() => {
     try {
       saveConversations(conversations);
+
+      // Clear an earlier storage warning after persistence succeeds.
+      // This synchronization is intentionally performed by the persistence effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStorageError(null);
     } catch (error) {
       console.error("Failed to save conversations:", error);
@@ -89,40 +104,37 @@ export function useConversations() {
     }
   }, [conversations]);
 
-    /**
-     * Creates and immediately activates a conversation.
-     * Called when the user sends the first message, not when they click New Chat.
-     * Paper metadata is captured as a snapshot for future restoration.
-     */
-    const createConversation = useCallback(
-      (arxivId: string | null = null, paperTitle: string | null = null) => {
-        const now = new Date().toISOString();
+  /**
+   * Creates and immediately activates a conversation.
+   * Called when the user sends the first message, not when they click New Chat.
+   * Paper metadata is captured as a snapshot for future restoration.
+   */
+  const createConversation = useCallback(
+    (arxivId: string | null = null, paperTitle: string | null = null) => {
+      const now = new Date().toISOString();
 
-        const conversation: Conversation = {
-          id: generateId(),
-          title: "New chat",
-          messages: [],
-          arxivId,
-          paperTitle,
-          createdAt: now,
-          updatedAt: now,
-        };
+      const conversation: Conversation = {
+        id: generateId(),
+        title: "New chat",
+        messages: [],
+        arxivId,
+        paperTitle,
+        createdAt: now,
+        updatedAt: now,
+      };
 
-        setConversations((previous) =>
-          sortConversations([conversation, ...previous]),
-        );
-        setActiveConversationId(conversation.id);
+      setConversations((previous) =>
+        sortConversations([conversation, ...previous]),
+      );
+      setActiveConversationId(conversation.id);
 
-        return conversation;
-      },
-      [],
-    );
+      return conversation;
+    },
+    [],
+  );
 
   /**
    * Activates an existing conversation without modifying its messages.
-   * Conversation IDs are supplied by the conversation list, so this
-   * callback only updates the active selection and leaves the collection
-   * untouched.
    */
   const selectConversation = useCallback(
     (conversationId: string | null) => {
@@ -238,5 +250,6 @@ export function useConversations() {
     renameConversation,
     updatePaperScope,
     deleteConversation,
+    clearAllConversations,
   };
 }

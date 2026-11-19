@@ -17,14 +17,18 @@ interface SidebarProps {
   onNewChat: () => void;
   onShowLibrary: () => void;
   onShowConversations: () => void;
+  onToggleSettings: () => void;
   activeView: "chat" | "library" | "conversations";
+  settingsOpen: boolean;
 }
 
 function Sidebar({
   onNewChat,
   onShowLibrary,
   onShowConversations,
+  onToggleSettings,
   activeView,
+  settingsOpen,
 }: SidebarProps) {
   return (
     <aside className="sidebar" aria-label="Application navigation">
@@ -71,17 +75,17 @@ function Sidebar({
         </button>
       </nav>
 
-      <div className="sidebar-footer">
-        <button
-          type="button"
-          className="navigation-item navigation-placeholder"
-          disabled
-          aria-label="Settings — coming soon"
-          data-tooltip="Settings · Coming soon"
-        >
-          <Settings2 size={20} strokeWidth={1.8} aria-hidden="true" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className={`navigation-item ${settingsOpen ? "active" : ""}`}
+        onClick={onToggleSettings}
+        aria-label="Settings"
+        aria-expanded={settingsOpen}
+        aria-controls="settings-panel"
+        data-tooltip="Settings"
+      >
+        <Settings2 size={20} strokeWidth={1.8} aria-hidden="true" />
+      </button>
     </aside>
   );
 }
