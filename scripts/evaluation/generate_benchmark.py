@@ -1077,7 +1077,7 @@ def main() -> None:
                     sources=sources,
                 )
 
-                response = generator.generate(
+                generation_result = generator.generate(
                     prompt=prompt,
                     system_prompt=(
                         "You generate rigorous scientific evaluation "
@@ -1087,7 +1087,8 @@ def main() -> None:
                     max_new_tokens=args.max_new_tokens,
                 )
 
-                generated = parse_model_response(response)
+                # Parse the decoded response text, not the GenerationResult container.
+                generated = parse_model_response(generation_result.text)
 
                 candidate = build_candidate(
                     generated=generated,

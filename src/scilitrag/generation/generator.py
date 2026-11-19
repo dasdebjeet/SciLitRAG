@@ -26,6 +26,7 @@ from __future__ import annotations
 import gc
 import logging
 import time
+from dataclasses import dataclass
 from typing import Optional
 
 import torch
@@ -37,6 +38,27 @@ from transformers import (
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class GenerationResult:
+    """
+    Store generated text and measured language-model inference statistics.
+
+    Attributes:
+        text: Decoded response produced by the language model.
+        generation_duration_seconds: Time spent inside model.generate(),
+            measured after CUDA synchronization.
+        generation_token_count: Number of newly generated token IDs,
+            excluding the input prompt.
+        tokens_per_second: Generated-token throughput calculated from
+            generation duration.
+    """
+
+    text: str
+    generation_duration_seconds: float
+    generation_token_count: int
+    tokens_per_second: float    
 
 
 class QwenGenerator:
@@ -217,7 +239,7 @@ class QwenGenerator:
         prompt: str,
         system_prompt: Optional[str] = None,
         max_new_tokens: Optional[int] = None,
-    ) -> str:
+    ) -> GenerationResult:
         """
         Generate a response to a user prompt.
 
@@ -227,7 +249,8 @@ class QwenGenerator:
             max_new_tokens: Maximum number of generated tokens.
 
         Returns:
-            Generated response as plain text.
+            GenerationResult containing the generated text, measured
+            generation duration, generated-token count, and throughput.
         """
 
         if self.model is None or self.tokenizer is None:
@@ -298,7 +321,7 @@ class QwenGenerator:
         # Remove the input tokens; decode only newly generated tokens.
         generated_ids = output_ids[0][prompt_length:]
 
-        generated_token_count = generated_ids.shape[0]
+        generated_token_count = int(generated_ids.numel())
 
         tokens_per_second = (
             generated_token_count / generation_duration
@@ -323,7 +346,12 @@ class QwenGenerator:
 
         self._log_gpu_memory("After generation")
 
-        return response.strip()
+        return GenerationResult(
+            text=response.strip(),
+            generation_duration_seconds=generation_duration,
+            generation_token_count=int(generated_token_count),
+            tokens_per_second=float(tokens_per_second),
+        )
 
     def close(self) -> None:
         """Release model references and clear unused CUDA memory."""
@@ -363,7 +391,7 @@ def main() -> None:
         # Load the model once for this process.
         generator = QwenGenerator(max_new_tokens=256)
 
-        response = generator.generate(
+        generation_result = generator.generate(
             prompt=(
                 "Explain what Retrieval-Augmented Generation (RAG) is "
                 "in approximately 150 words. Include its main components."
@@ -373,8 +401,15 @@ def main() -> None:
         print("\n" + "=" * 70)
         print("QWEN3 GENERATION RESULT")
         print("=" * 70)
-        print(response)
+        print(generation_result.text)
         print("=" * 70)
+
+        logger.info(
+            "Generation statistics | duration=%.2fs | tokens=%d | speed=%.2f tokens/s",
+            generation_result.generation_duration_seconds,
+            generation_result.generation_token_count,
+            generation_result.tokens_per_second,
+        )
 
     finally:
         # Release GPU resources when the standalone test exits.

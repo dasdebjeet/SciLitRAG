@@ -115,7 +115,34 @@ function AssistantResponse({
   return (
     <section className="answer-container" aria-label="Research response">
       <div className="message-timestamp">
-        {new Date(message.createdAt).toLocaleString()}
+        {/* {new Date(message.createdAt).toLocaleString()} */}
+          <time dateTime={message.createdAt}>
+            {new Date(message.createdAt).toLocaleString()}
+          </time>
+
+          {message.generationDurationSeconds != null && (
+            <>
+              <span
+                className="message-metadata-separator"
+                aria-hidden="true"
+              />
+              <span>
+                {message.generationDurationSeconds.toFixed(2)}s
+              </span>
+            </>
+          )}
+
+          {message.tokensPerSecond != null && (
+            <>
+              <span
+                className="message-metadata-separator"
+                aria-hidden="true"
+              />
+              <span>
+                {message.tokensPerSecond.toFixed(1)} tokens/s
+              </span>
+            </>
+          )}
       </div>
 
       <div className="answer-layout">
@@ -530,6 +557,17 @@ function App() {
         citations: result.citations,
         contextTokenCount: result.context_token_count,
         createdAt: new Date().toISOString(),
+
+        // Preserve the exact generation statistics returned by the backend.
+        // Missing values remain undefined instead of displaying placeholders.
+        generationDurationSeconds:
+          result.generation_duration_seconds ?? undefined,
+
+        generationTokenCount:
+          result.generation_token_count ?? undefined,
+
+        tokensPerSecond:
+          result.tokens_per_second ?? undefined,
       };
 
       addMessage(conversation.id, assistantMessage);

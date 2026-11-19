@@ -25,6 +25,12 @@ export interface AssistantMessage {
   citations: Citation[];
   contextTokenCount: number;
   createdAt: string;
+
+  // Persist generation statistics with the response so they survive
+  // conversation switching and restoration from local storage.
+  generationDurationSeconds?: number;
+  generationTokenCount?: number;
+  tokensPerSecond?: number;
 }
 
 /** A message exchanged within a conversation. */

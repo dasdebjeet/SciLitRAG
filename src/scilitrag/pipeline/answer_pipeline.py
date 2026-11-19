@@ -218,12 +218,32 @@ def is_general_conversation(question: str) -> bool:
 
 @dataclass(frozen=True)
 class AnswerResult:
-    """Represent a generated answer and its resolved source references."""
+    """
+    Represent a generated answer and its resolved source references.
+
+    Generation metrics are optional because some responses, such as
+    requests without relevant retrieval evidence, do not invoke the
+    language model.
+
+    Attributes:
+        question: Original user question.
+        answer: Generated or fallback response.
+        citations: Validated evidence references used in the answer.
+        context_token_count: Number of tokens in the assembled evidence context.
+        generation_duration_seconds: Time spent inside model.generate().
+        generation_token_count: Number of newly generated token IDs.
+        tokens_per_second: Measured generation throughput.
+    """
 
     question: str
     answer: str
     citations: list[Evidence]
     context_token_count: int
+
+    # Optional inference metrics; remain None when generation is skipped.
+    generation_duration_seconds: float | None = None
+    generation_token_count: int | None = None
+    tokens_per_second: float | None = None
 
 
 
@@ -378,7 +398,12 @@ def resolve_citations(
 # ---------------------------------------------------------------------------
 
 class AnswerPipeline:
-    """Coordinate retrieval, reranking, evidence assembly, and generation."""
+    """
+    Orchestrate retrieval, reranking, context assembly, and answer generation.
+
+    This is a regular class rather than a dataclass because it manages
+    model configuration and runtime resources.
+    """
 
     def __init__(
         self,
@@ -472,7 +497,7 @@ class AnswerPipeline:
             try:
                 generator = QwenGenerator()
 
-                generated_answer = generator.generate(
+                generation_result = generator.generate(
                     prompt=question,
                     system_prompt=GENERAL_CONVERSATION_SYSTEM_PROMPT,
                     max_new_tokens=min(self.max_new_tokens, 400),
@@ -480,9 +505,16 @@ class AnswerPipeline:
 
                 return AnswerResult(
                     question=question,
-                    answer=generated_answer,
+                    answer=generation_result.text,
                     citations=[],
                     context_token_count=0,
+                    generation_duration_seconds=(
+                        generation_result.generation_duration_seconds
+                    ),
+                    generation_token_count=(
+                        generation_result.generation_token_count
+                    ),
+                    tokens_per_second=generation_result.tokens_per_second,
                 )
 
             finally:
@@ -627,11 +659,13 @@ class AnswerPipeline:
 
             LOGGER.info("Generating research answer.")
 
-            generated_answer = generator.generate(
+            generation_result = generator.generate(
                 prompt=prompt,
                 system_prompt=SYSTEM_PROMPT,
                 max_new_tokens=self.max_new_tokens,
             )
+
+            generated_answer = generation_result.text
 
             # -----------------------------------------------------------
             # Stage 6: Validate and resolve citations
@@ -652,6 +686,13 @@ class AnswerPipeline:
                 answer=final_answer,
                 citations=resolved_citations,
                 context_token_count=assembled_context.token_count,
+                generation_duration_seconds=(
+                    generation_result.generation_duration_seconds
+                ),
+                generation_token_count=(
+                    generation_result.generation_token_count
+                ),
+                tokens_per_second=generation_result.tokens_per_second,
             )
 
         finally:

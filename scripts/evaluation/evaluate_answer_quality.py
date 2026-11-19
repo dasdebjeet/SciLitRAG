@@ -282,14 +282,18 @@ def evaluate_one(
     torch.cuda.synchronize(0)
     start_time = time.perf_counter()
 
-    generated_answer = generator.generate(
+    generation_result = generator.generate(
         prompt=prompt,
         system_prompt=SYSTEM_PROMPT,
         max_new_tokens=MAX_NEW_TOKENS,
     )
 
-    torch.cuda.synchronize(0)
-    generation_seconds = time.perf_counter() - start_time
+    # Extract the generated text for citation resolution and downstream processing.
+    generated_answer = generation_result.text
+
+    # Reuse the generator's measured inference statistics rather than timing
+    # model.generate() again in this evaluation script.
+    generation_seconds = generation_result.generation_duration_seconds
 
     final_answer, resolved_citations = resolve_citations(
         answer=generated_answer,
@@ -300,12 +304,7 @@ def evaluate_one(
         {
             "answer": final_answer,
             "generation_seconds": round(generation_seconds, 3),
-            "generated_answer_tokens": len(
-                generator.tokenizer.encode(
-                    generated_answer,
-                    add_special_tokens=False,
-                )
-            ),
+            "generated_answer_tokens": generation_result.generation_token_count,
             "citations": [
                 {
                     "evidence_id": item.evidence_id,

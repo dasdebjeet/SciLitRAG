@@ -12,6 +12,7 @@ import pytest
 
 from scilitrag.pipeline import answer_pipeline
 from scilitrag.pipeline.context_builder import Evidence
+from scilitrag.generation.generator import GenerationResult
 
 
 @pytest.mark.parametrize(
@@ -56,7 +57,12 @@ def test_general_conversation_skips_retrieval(
     """General questions should generate an answer without initializing retrieval."""
 
     mock_generator = MagicMock()
-    mock_generator.generate.return_value = "I am SciLitRAG, your research assistant."
+    mock_generator.generate.return_value = GenerationResult(
+        text="I am SciLitRAG, your research assistant.",
+        generation_duration_seconds=1.25,
+        generation_token_count=12,
+        tokens_per_second=9.6,
+    )
 
     # Replace the real generator so this test does not load Qwen onto the GPU.
     monkeypatch.setattr(

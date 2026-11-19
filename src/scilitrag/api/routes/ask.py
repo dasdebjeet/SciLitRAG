@@ -85,6 +85,21 @@ def ask_question(
             answer=result.answer,
             citations=citations,
             context_token_count=result.context_token_count,
+            generation_duration_seconds=getattr(
+                result,
+                "generation_duration_seconds",
+                None,
+            ),
+            generation_token_count=getattr(
+                result,
+                "generation_token_count",
+                None,
+            ),
+            tokens_per_second=getattr(
+                result,
+                "tokens_per_second",
+                None,
+            ),
         )
 
     except Exception as exc:

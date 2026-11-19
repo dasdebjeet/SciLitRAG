@@ -53,6 +53,12 @@ export interface AskResponse {
   answer: string;
   citations: Citation[];
   context_token_count: number;
+
+  // Optional because retrieval failures and other non-generation
+  // responses do not have language-model generation statistics.
+  generation_duration_seconds?: number | null;
+  generation_token_count?: number | null;
+  tokens_per_second?: number | null;
 }
 
 /**

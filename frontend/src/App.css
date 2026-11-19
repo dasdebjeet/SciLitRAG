@@ -303,10 +303,37 @@
 
 /* Keep timestamps subtle so message content remains the visual focus. */
 .message-timestamp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+
   color: var(--color-muted);
   font-size: 10px;
-  line-height: 1.4;
+  line-height: 1.5;
   font-variant-numeric: tabular-nums;
+}
+
+.answer-container > .message-timestamp {
+  padding-left: 10px;
+}
+
+.user-message > .message-timestamp {
+  padding-right: 10px;
+}
+
+/*
+ * Small circular separators between metadata values.
+ * currentColor keeps them synchronized with the metadata text.
+ */
+.message-metadata-separator {
+  flex: 0 0 2px;
+
+  width: 2px;
+  height: 2px;
+
+  border-radius: 50%;
+  background: var(--color-muted);
 }
 
 /* Assistant responses occupy the available workspace width. */
@@ -498,6 +525,28 @@
   border: 0;
   border-top: 1px solid var(--color-border);
 }
+
+/*
+ * Compact response metadata.
+ *
+ * The row sits inside the answer card, above the Markdown content.
+ * Its secondary color follows the active theme through currentColor.
+ */
+/* .answer-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 18px;
+
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+} */
+
+
 
 /* ============================================================
    7. Question composer
