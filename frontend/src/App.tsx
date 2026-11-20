@@ -3,7 +3,16 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import { BookOpen, X, ArrowRight, ArrowDown } from "lucide-react";
+import {
+  BookOpen,
+  X,
+  ArrowRight,
+  ArrowDown,
+  CalendarClock,
+  Clock,
+  Cpu,
+  Zap,
+} from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 // KaTeX styles are required to display formatted mathematical expressions.
@@ -99,6 +108,7 @@ function generateMessageId(): string {
   return crypto.randomUUID();
 }
 
+
 /**
  * Render one assistant response together with its own research sources.
  *
@@ -114,35 +124,67 @@ function AssistantResponse({
 
   return (
     <section className="answer-container" aria-label="Research response">
+      {/* Display response timing and generation statistics inline. */}
       <div className="message-timestamp">
-        {/* {new Date(message.createdAt).toLocaleString()} */}
-          <time dateTime={message.createdAt}>
-            {new Date(message.createdAt).toLocaleString()}
-          </time>
+        <CalendarClock
+          size={13}
+          strokeWidth={1.8}
+          aria-hidden="true"
+        />
+        <time dateTime={message.createdAt}>
+          {new Date(message.createdAt).toLocaleTimeString()}
+        </time>
 
-          {message.generationDurationSeconds != null && (
-            <>
-              <span
-                className="message-metadata-separator"
-                aria-hidden="true"
-              />
-              <span>
+        {/* Total duration covers the complete API request lifecycle. */}
+        {message.totalResponseDurationSeconds != null && (
+          <>
+            <span className="message-metadata-separator" aria-hidden="true" />
+            <Clock
+              size={13}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            <span>
+              <strong>
+                {message.totalResponseDurationSeconds.toFixed(2)}s
+              </strong>{" "}
+              Total
+            </span>
+          </>
+        )}
+
+        {/* Generation duration measures only the model.generate() call. */}
+        {message.generationDurationSeconds != null && (
+          <>
+            <span className="message-metadata-separator" aria-hidden="true" />
+            <Cpu
+              size={13}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            <span>
+              <strong>
                 {message.generationDurationSeconds.toFixed(2)}s
-              </span>
-            </>
-          )}
+              </strong>{" "}
+              Generation
+            </span>
+          </>
+        )}
 
-          {message.tokensPerSecond != null && (
-            <>
-              <span
-                className="message-metadata-separator"
-                aria-hidden="true"
-              />
-              <span>
-                {message.tokensPerSecond.toFixed(1)} tokens/s
-              </span>
-            </>
-          )}
+        {/* Throughput reports the language model's generation speed. */}
+        {message.tokensPerSecond != null && (
+          <>
+            <span className="message-metadata-separator" aria-hidden="true" />
+            <Zap
+              size={13}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
+            <span>
+              <strong>{message.tokensPerSecond.toFixed(1)} tokens/s</strong>
+            </span>
+          </>
+        )}
       </div>
 
       <div className="answer-layout">
@@ -161,20 +203,20 @@ function AssistantResponse({
           </div>
         </main>
 
-        <aside className="citations-section" aria-label="Sources">
-          <div className="sources-heading">
-            <h3>Sources</h3>
-            <span>{message.citations.length}</span>
-          </div>
+        {/* Hide the entire Sources panel when no citations are available. */}
+        {message.citations.length > 0 && (
+          <aside className="citations-section" aria-label="Sources">
+            <div className="sources-heading">
+              <h3>Sources</h3>
+              <span>{message.citations.length}</span>
+            </div>
 
-          {message.citations.length === 0 ? (
-            <p className="sources-empty">
-              No source passages were returned.
-            </p>
-          ) : (
             <div className="citations-list">
               {message.citations.map((citation) => {
-                const evidenceNumber = citation.evidence_id.replace(/^E/i, "");
+                const evidenceNumber = citation.evidence_id.replace(
+                  /^E/i,
+                  "",
+                );
 
                 return (
                   <article
@@ -202,7 +244,9 @@ function AssistantResponse({
 
                     <a
                       className="citation-paper-link"
-                      href={`https://arxiv.org/abs/${encodeURIComponent(citation.arxiv_id)}`}
+                      href={`https://arxiv.org/abs/${encodeURIComponent(
+                        citation.arxiv_id,
+                      )}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -221,8 +265,8 @@ function AssistantResponse({
                 );
               })}
             </div>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
     </section>
   );
@@ -558,8 +602,11 @@ function App() {
         contextTokenCount: result.context_token_count,
         createdAt: new Date().toISOString(),
 
-        // Preserve the exact generation statistics returned by the backend.
-        // Missing values remain undefined instead of displaying placeholders.
+        // Preserve the complete request duration returned by the backend.
+        totalResponseDurationSeconds:
+          result.total_response_duration_seconds ?? undefined,
+
+        // Preserve the model generation statistics.
         generationDurationSeconds:
           result.generation_duration_seconds ?? undefined,
 
