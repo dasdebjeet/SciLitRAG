@@ -13,10 +13,10 @@ export interface UserMessage {
 }
 
 /**
- * An assistant response with its associated research evidence.
+ * An assistant response with its associated research evidence and timing.
  *
- * Keeping citations alongside the response ensures that conversation
- * switching restores the correct sources for each answer.
+ * Keeping citations and performance statistics alongside the response
+ * ensures they survive conversation switching and local-storage restoration.
  */
 export interface AssistantMessage {
   id: string;
@@ -26,8 +26,10 @@ export interface AssistantMessage {
   contextTokenCount: number;
   createdAt: string;
 
-  // Persist generation statistics with the response so they survive
-  // conversation switching and restoration from local storage.
+  // Total time spent processing the complete API request.
+  totalResponseDurationSeconds?: number;
+
+  // Language-model generation statistics.
   generationDurationSeconds?: number;
   generationTokenCount?: number;
   tokensPerSecond?: number;

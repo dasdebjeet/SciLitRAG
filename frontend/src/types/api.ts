@@ -54,8 +54,11 @@ export interface AskResponse {
   citations: Citation[];
   context_token_count: number;
 
-  // Optional because retrieval failures and other non-generation
-  // responses do not have language-model generation statistics.
+  // Total time spent processing the complete API request, including
+  // retrieval, reranking, context preparation, and response generation.
+  total_response_duration_seconds: number;
+
+  // Time spent inside the language model's generate() call only.
   generation_duration_seconds?: number | null;
   generation_token_count?: number | null;
   tokens_per_second?: number | null;
