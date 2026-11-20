@@ -252,6 +252,13 @@ SciLitRAG/
 │   │   ├── evaluate_retrieval.py
 │   │   ├── evaluate_context_selection.py
 │   │   └── evaluate_answer_quality.py
+│   ├── optimization/
+│   │   └── reranker/
+│   │       ├── benchmark_reranker.py
+│   │       ├── export_reranker_onnx.py
+│   │       ├── benchmark_reranker_onnx.py
+│   │       ├── benchmark_reranker_onnx_execution.py
+│   │       └── benchmark_reranker_onnx_threads.py
 │   ├── utilities/
 │   │   ├── validate_papers.py
 │   │   ├── fix_paper_metadata.py
