@@ -143,3 +143,12 @@ class AskResponse(BaseModel):
         ge=0,
         description="Measured language-model generation throughput.",
     )
+
+    total_response_duration_seconds: float = Field(
+        ...,
+        ge=0,
+        description=(
+            "Total server-side request processing time, "
+            "including inference and API response construction."
+        ),
+    )

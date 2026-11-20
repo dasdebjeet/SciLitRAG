@@ -2,22 +2,23 @@
 """
 End-to-end grounded question-answering pipeline for SciLitRAG.
 
-This module orchestrates the existing retrieval, reranking, context assembly,
-and generation components without duplicating their responsibilities.
+This module orchestrates hybrid retrieval, cross-encoder reranking,
+context assembly, and local language-model generation.
+
+Resource lifecycle:
+    - Initialize BM25, BGE-M3, Qdrant, the cross-encoder, and Qwen once.
+    - Reuse these resources across requests in a persistent API process.
+    - Keep retrieval and reranking on the configured retrieval device.
+    - Keep Qwen on CUDA through its own generator configuration.
+    - Release all resources during application shutdown.
 
 Pipeline:
     0. Route simple conversational questions directly to generation.
     1. Retrieve research candidates using BM25 + dense retrieval + RRF.
     2. Rerank candidates using a cross-encoder.
-    3. Release retrieval and reranking GPU resources.
-    4. Load the Qwen generator.
-    5. Assemble a token-budgeted evidence context.
-    6. Generate an answer grounded in the retrieved passages.
-    7. Resolve generated evidence IDs to their original paper metadata.
-
-GPU memory strategy:
-    Retrieval and reranking models are released before Qwen is loaded.
-    This avoids keeping all models resident on the GPU simultaneously.
+    3. Assemble a token-budgeted evidence context.
+    4. Generate an answer grounded in the retrieved passages.
+    5. Resolve generated evidence IDs to their original paper metadata.
 
 Citation strategy:
     The generator receives numeric source labels such as [1] and [2].
@@ -27,6 +28,7 @@ Citation strategy:
 
 from __future__ import annotations
 
+import time
 import argparse
 import logging
 import re
@@ -36,7 +38,11 @@ from pathlib import Path
 from typing import Any
 
 from scilitrag.generation.generator import QwenGenerator
-from scilitrag.pipeline.context_builder import AssembledContext, ContextBuilder, Evidence
+from scilitrag.pipeline.context_builder import (
+    AssembledContext,
+    ContextBuilder,
+    Evidence,
+)
 from scilitrag.retrieval.hybrid_retriever import HybridRetriever
 from scilitrag.retrieval.reranker import CrossEncoderReranker
 
@@ -58,6 +64,9 @@ LOGGER = logging.getLogger(__name__)
 CITATION_PATTERN = re.compile(r"\[(\d+)\]")
 
 
+# ---------------------------------------------------------------------------
+# System Prompts
+# ---------------------------------------------------------------------------
 
 SYSTEM_PROMPT = """
 You are SciLitRAG, an AI research assistant specializing in scientific
@@ -207,10 +216,12 @@ def is_general_conversation(question: str) -> bool:
     """Return whether a complete question is clearly conversational."""
 
     normalized_question = question.strip()
+
     return any(
         pattern.fullmatch(normalized_question)
         for pattern in GENERAL_CONVERSATION_PATTERNS
     )
+
 
 # ---------------------------------------------------------------------------
 # Result Model
@@ -240,11 +251,9 @@ class AnswerResult:
     citations: list[Evidence]
     context_token_count: int
 
-    # Optional inference metrics; remain None when generation is skipped.
     generation_duration_seconds: float | None = None
     generation_token_count: int | None = None
     tokens_per_second: float | None = None
-
 
 
 # ---------------------------------------------------------------------------
@@ -336,7 +345,6 @@ Do not cite sources that are not included in the freshly retrieved evidence.
 """
 
 
-
 # ---------------------------------------------------------------------------
 # Citation Resolution
 # ---------------------------------------------------------------------------
@@ -346,10 +354,6 @@ def resolve_citations(
     evidence: list[Evidence],
 ) -> tuple[str, list[Evidence]]:
     """Validate generated evidence IDs and resolve them to source metadata.
-
-    Returns:
-        A possibly corrected answer and the unique evidence records actually
-        cited by the answer.
 
     Unknown evidence identifiers are marked as unverified rather than being
     silently accepted as valid citations.
@@ -368,7 +372,6 @@ def resolve_citations(
         if evidence_id not in evidence_by_id
     ]
 
-    # Do not allow citations invented by the model to appear valid.
     if unknown_ids:
         LOGGER.warning(
             "Generated answer contains unknown evidence IDs: %s",
@@ -401,8 +404,10 @@ class AnswerPipeline:
     """
     Orchestrate retrieval, reranking, context assembly, and answer generation.
 
-    This is a regular class rather than a dataclass because it manages
-    model configuration and runtime resources.
+    The pipeline owns its long-lived resources. In API usage, initialize()
+    is called during application startup and close() during shutdown.
+
+    Standalone CLI usage initializes lazily when answer() is first called.
     """
 
     def __init__(
@@ -412,7 +417,7 @@ class AnswerPipeline:
         chunks_path: Path = Path("data/processed/chunks.jsonl"),
         embedding_model: str = "BAAI/bge-m3",
         reranker_model: str = "BAAI/bge-reranker-v2-m3",
-        device: str = "cuda",
+        device: str = "cpu",
         top_k: int = DEFAULT_TOP_K,
         retrieval_k: int = DEFAULT_RETRIEVAL_K,
         max_context_tokens: int = DEFAULT_MAX_CONTEXT_TOKENS,
@@ -437,6 +442,9 @@ class AnswerPipeline:
                 "max_new_tokens must be greater than zero."
             )
 
+        if device not in {"cuda", "cpu"}:
+            raise ValueError("device must be either 'cuda' or 'cpu'.")
+
         self.qdrant_url = qdrant_url
         self.collection_name = collection_name
         self.chunks_path = chunks_path
@@ -449,6 +457,122 @@ class AnswerPipeline:
         self.max_context_tokens = max_context_tokens
         self.max_new_tokens = max_new_tokens
 
+        # Long-lived resources. These are initialized once and reused
+        # across requests instead of being reconstructed inside answer().
+        self.hybrid: HybridRetriever | None = None
+        self.reranker: CrossEncoderReranker | None = None
+        self.generator: QwenGenerator | None = None
+
+        self._initialized = False
+        self._closed = False
+
+    def _initialize_generator(self) -> None:
+        """Load Qwen once, only when a request needs answer generation."""
+
+        if self._closed:
+            raise RuntimeError("Cannot use a closed AnswerPipeline.")
+
+        if self.generator is None:
+            LOGGER.info("Initializing persistent Qwen generator.")
+            self.generator = QwenGenerator()
+
+
+    def _initialize_retrieval(self) -> None:
+        """Load hybrid retrieval and reranking resources once, on demand."""
+
+        if self._closed:
+            raise RuntimeError("Cannot use a closed AnswerPipeline.")
+
+        if self.hybrid is None:
+            LOGGER.info("Initializing persistent hybrid retriever.")
+            self.hybrid = HybridRetriever(
+                qdrant_url=self.qdrant_url,
+                collection_name=self.collection_name,
+                model_name=self.embedding_model,
+                device=self.device,
+                chunks_path=self.chunks_path,
+            )
+
+        if self.reranker is None:
+            LOGGER.info("Initializing persistent cross-encoder reranker.")
+            self.reranker = CrossEncoderReranker(
+                model_name=self.reranker_model,
+                device=self.device,
+            )
+
+
+    def initialize(self) -> None:
+        """Eagerly initialize all resources for application startup.
+
+        API lifespan can call this method to load all models before accepting
+        requests. Direct pipeline usage remains lazy through answer().
+        """
+
+        if self._closed:
+            raise RuntimeError(
+                "Cannot initialize an AnswerPipeline after it has been closed."
+            )
+
+        if self._initialized:
+            return
+
+        LOGGER.info("Initializing all persistent SciLitRAG resources.")
+
+        try:
+            self._initialize_retrieval()
+            self._initialize_generator()
+            self._initialized = True
+
+            LOGGER.info("Persistent SciLitRAG resources initialized.")
+
+        except Exception:
+            LOGGER.exception("SciLitRAG resource initialization failed.")
+            self.close()
+            raise
+
+
+    def close(self) -> None:
+        """Release all resources owned by this pipeline.
+
+        Cleanup is idempotent and attempts to release every component even
+        if an individual component's cleanup operation raises an exception.
+        """
+
+        if self._closed:
+            return
+
+        LOGGER.info("Releasing persistent SciLitRAG resources.")
+
+        resources = (
+            ("generator", self.generator),
+            ("reranker", self.reranker),
+            ("hybrid retriever", self.hybrid),
+        )
+
+        try:
+            for resource_name, resource in resources:
+                if resource is None:
+                    continue
+
+                try:
+                    resource.close()
+                except Exception:
+                    LOGGER.exception(
+                        "Failed to release %s resources.",
+                        resource_name,
+                    )
+
+        finally:
+            # Clear references even when one component fails to close.
+            self.generator = None
+            self.reranker = None
+            self.hybrid = None
+
+            self._initialized = False
+            self._closed = True
+
+        LOGGER.info("SciLitRAG resources released.")
+
     def answer(
         self,
         question: str,
@@ -457,11 +581,9 @@ class AnswerPipeline:
     ) -> AnswerResult:
         """Answer a question using direct chat or the grounded RAG pipeline.
 
-        Clear general-conversation questions bypass retrieval and use the
-        generator directly. Research questions retain the existing retrieval,
-        reranking, context assembly, and citation-validation workflow.
-        Retrieval and reranking models are released before Qwen is initialized
-        to reduce peak GPU memory consumption.
+        The shared models are initialized once and reused for subsequent
+        calls. Request-specific state, including prompts and assembled
+        evidence context, is constructed separately for each question.
         """
 
         if not question or not question.strip():
@@ -470,8 +592,13 @@ class AnswerPipeline:
         question = question.strip()
         history = history or []
 
-        # Build a retrieval query that can resolve references in follow-up
-        # questions while retaining the user's latest question explicitly.
+        # Resources are initialized according to the request path below.
+        # API startup may already have initialized everything; these checks
+        # ensure standalone usage initializes only what it actually needs.
+        if self._closed:
+            raise RuntimeError("Cannot answer using a closed AnswerPipeline.")
+
+        # Build a context-aware retrieval query for research follow-ups.
         retrieval_query = build_retrieval_query(
             question=question,
             history=history,
@@ -492,101 +619,77 @@ class AnswerPipeline:
                 "General conversation detected. Skipping research retrieval."
             )
 
-            generator: QwenGenerator | None = None
+            self._initialize_generator()
 
-            try:
-                generator = QwenGenerator()
+            if self.generator is None:
+                raise RuntimeError("Generator initialization failed.")
 
-                generation_result = generator.generate(
-                    prompt=question,
-                    system_prompt=GENERAL_CONVERSATION_SYSTEM_PROMPT,
-                    max_new_tokens=min(self.max_new_tokens, 400),
-                )
+            # Reuse the persistent generator instead of loading a new
+            # Qwen instance and releasing it after every conversational turn.
+            generation_result = self.generator.generate(
+                prompt=question,
+                system_prompt=GENERAL_CONVERSATION_SYSTEM_PROMPT,
+                max_new_tokens=min(self.max_new_tokens, 400),
+            )
 
-                return AnswerResult(
-                    question=question,
-                    answer=generation_result.text,
-                    citations=[],
-                    context_token_count=0,
-                    generation_duration_seconds=(
-                        generation_result.generation_duration_seconds
-                    ),
-                    generation_token_count=(
-                        generation_result.generation_token_count
-                    ),
-                    tokens_per_second=generation_result.tokens_per_second,
-                )
-
-            finally:
-                # Release Qwen's GPU resources before returning to the API.
-                if generator is not None:
-                    generator.close()
+            return AnswerResult(
+                question=question,
+                answer=generation_result.text,
+                citations=[],
+                context_token_count=0,
+                generation_duration_seconds=(
+                    generation_result.generation_duration_seconds
+                ),
+                generation_token_count=(
+                    generation_result.generation_token_count
+                ),
+                tokens_per_second=generation_result.tokens_per_second,
+            )
 
         # ---------------------------------------------------------------
         # Stage 1: Hybrid retrieval and cross-encoder reranking
         # ---------------------------------------------------------------
 
-        hybrid: HybridRetriever | None = None
-        reranker: CrossEncoderReranker | None = None
+        self._initialize_retrieval()
+
+        if self.hybrid is None or self.reranker is None:
+            raise RuntimeError("Retrieval resource initialization failed.")
+
+        LOGGER.info("Starting hybrid retrieval.")
+
+        retrieval_start = time.perf_counter()
+
+        candidates = self.hybrid.search(
+            query=retrieval_query,
+            top_k=self.retrieval_k,
+            retrieval_k=self.retrieval_k,
+            arxiv_id=arxiv_id,
+        )
+
+        LOGGER.info(
+            "Hybrid retrieval duration=%.3fs",
+            time.perf_counter() - retrieval_start,
+        )
+
         ranked_candidates: list[dict[str, Any]] = []
 
-        try:
-            LOGGER.info("Starting hybrid retrieval.")
+        if candidates:
+            rerank_start = time.perf_counter()
 
-            hybrid_kwargs: dict[str, Any] = {
-                "qdrant_url": self.qdrant_url,
-                "collection_name": self.collection_name,
-                "model_name": self.embedding_model,
-                "device": self.device,
-                "chunks_path": self.chunks_path,
-            }
-
-            hybrid = HybridRetriever(**hybrid_kwargs)
-
-            candidates = hybrid.search(
+            ranked_candidates = self.reranker.rerank(
                 query=retrieval_query,
-                top_k=self.retrieval_k,
-                retrieval_k=self.retrieval_k,
-                arxiv_id=arxiv_id,
+                candidates=candidates,
+                top_k=self.top_k,
             )
 
             LOGGER.info(
-                "Hybrid retrieval completed | candidates=%d",
-                len(candidates),
+                "Reranking duration=%.3fs",
+                time.perf_counter() - rerank_start,
             )
-
-            # No evidence means there is no reason to load the generator.
-            if not candidates:
-                LOGGER.warning(
-                    "No retrieval candidates found. Skipping generation."
-                )
-
-            else:
-                LOGGER.info("Initializing cross-encoder reranker.")
-
-                reranker = CrossEncoderReranker(
-                    model_name=self.reranker_model,
-                    device=self.device,
-                )
-
-                ranked_candidates = reranker.rerank(
-                    query=retrieval_query,
-                    candidates=candidates,
-                    top_k=self.top_k,
-                )
-
-                LOGGER.info(
-                    "Reranking completed | selected=%d",
-                    len(ranked_candidates),
-                )
-
-        finally:
-            # Release the cross-encoder before the dense retrieval model.
-            if reranker is not None:
-                reranker.close()
-
-            if hybrid is not None:
-                hybrid.close()
+        else:
+            LOGGER.warning(
+                "No retrieval candidates found. Skipping generation."
+            )
 
         # ---------------------------------------------------------------
         # Stage 2: Handle missing retrieval evidence
@@ -605,100 +708,88 @@ class AnswerPipeline:
             )
 
         # ---------------------------------------------------------------
-        # Stage 3: Load generator after releasing retrieval models
+        # Stage 3: Assemble evidence context
         # ---------------------------------------------------------------
 
-        generator: QwenGenerator | None = None
+        self._initialize_generator()
 
-        try:
-            LOGGER.info(
-                "Loading Qwen generator after retrieval model cleanup."
-            )
+        if self.generator is None:
+            raise RuntimeError("Generator initialization failed.")
 
-            generator = QwenGenerator()
+        # Use the shared generator's tokenizer for accurate context sizing.
+        context_builder = ContextBuilder(
+            tokenizer=self.generator.tokenizer,
+            max_tokens=self.max_context_tokens,
+            max_chunks_per_paper=3,
+        )
 
-            # Use the generator's own tokenizer for accurate context sizing.
-            context_builder = ContextBuilder(
-                tokenizer=generator.tokenizer,
-                max_tokens=self.max_context_tokens,
-                max_chunks_per_paper=3,
-            )
+        context_start = time.perf_counter()
 
-            # -----------------------------------------------------------
-            # Stage 4: Assemble evidence context
-            # -----------------------------------------------------------
+        assembled_context = context_builder.build(ranked_candidates)
 
-            assembled_context = context_builder.build(ranked_candidates)
+        LOGGER.info(
+            "Context assembly duration=%.3fs",
+            time.perf_counter() - context_start,
+        )
 
-            LOGGER.info(
-                "Context assembled | evidence=%d | tokens=%d",
-                len(assembled_context.evidence),
-                assembled_context.token_count,
-            )
-
-            if not assembled_context.evidence:
-                return AnswerResult(
-                    question=question,
-                    answer=(
-                        "The retrieved passages could not be assembled into "
-                        "usable evidence. No answer was generated."
-                    ),
-                    citations=[],
-                    context_token_count=assembled_context.token_count,
-                )
-
-            # -----------------------------------------------------------
-            # Stage 5: Generate grounded answer
-            # -----------------------------------------------------------
-
-            prompt = build_user_prompt(
-                question=question,
-                assembled_context=assembled_context,
-                history=history,
-            )
-
-            LOGGER.info("Generating research answer.")
-
-            generation_result = generator.generate(
-                prompt=prompt,
-                system_prompt=SYSTEM_PROMPT,
-                max_new_tokens=self.max_new_tokens,
-            )
-
-            generated_answer = generation_result.text
-
-            # -----------------------------------------------------------
-            # Stage 6: Validate and resolve citations
-            # -----------------------------------------------------------
-
-            final_answer, resolved_citations = resolve_citations(
-                answer=generated_answer,
-                evidence=assembled_context.evidence,
-            )
-
-            LOGGER.info(
-                "Answer generation completed | resolved_citations=%d",
-                len(resolved_citations),
-            )
-
+        if not assembled_context.evidence:
             return AnswerResult(
                 question=question,
-                answer=final_answer,
-                citations=resolved_citations,
+                answer=(
+                    "The retrieved passages could not be assembled into "
+                    "usable evidence. No answer was generated."
+                ),
+                citations=[],
                 context_token_count=assembled_context.token_count,
-                generation_duration_seconds=(
-                    generation_result.generation_duration_seconds
-                ),
-                generation_token_count=(
-                    generation_result.generation_token_count
-                ),
-                tokens_per_second=generation_result.tokens_per_second,
             )
 
-        finally:
-            # The generator owns the largest model allocation in this stage.
-            if generator is not None:
-                generator.close()
+        # ---------------------------------------------------------------
+        # Stage 4: Generate grounded answer
+        # ---------------------------------------------------------------
+
+        prompt = build_user_prompt(
+            question=question,
+            assembled_context=assembled_context,
+            history=history,
+        )
+
+        LOGGER.info("Generating research answer.")
+
+        generation_result = self.generator.generate(
+            prompt=prompt,
+            system_prompt=SYSTEM_PROMPT,
+            max_new_tokens=self.max_new_tokens,
+        )
+
+        generated_answer = generation_result.text
+
+        # ---------------------------------------------------------------
+        # Stage 5: Validate and resolve citations
+        # ---------------------------------------------------------------
+
+        final_answer, resolved_citations = resolve_citations(
+            answer=generated_answer,
+            evidence=assembled_context.evidence,
+        )
+
+        LOGGER.info(
+            "Answer generation completed | resolved_citations=%d",
+            len(resolved_citations),
+        )
+
+        return AnswerResult(
+            question=question,
+            answer=final_answer,
+            citations=resolved_citations,
+            context_token_count=assembled_context.token_count,
+            generation_duration_seconds=(
+                generation_result.generation_duration_seconds
+            ),
+            generation_token_count=(
+                generation_result.generation_token_count
+            ),
+            tokens_per_second=generation_result.tokens_per_second,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -797,8 +888,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--device",
         choices=["cuda", "cpu"],
-        default="cuda",
-        help="Device used by retrieval and reranking models.",
+        default="cpu",
+        help="Device used by the embedding and reranking models.",
     )
 
     return parser.parse_args()
@@ -824,6 +915,8 @@ def main() -> int:
         )
         return 1
 
+    pipeline: AnswerPipeline | None = None
+
     try:
         pipeline = AnswerPipeline(
             top_k=args.top_k,
@@ -833,6 +926,7 @@ def main() -> int:
             device=args.device,
         )
 
+        # answer() initializes the pipeline on its first invocation.
         result = pipeline.answer(
             question=args.query,
             arxiv_id=args.arxiv_id,
@@ -849,6 +943,12 @@ def main() -> int:
     except Exception:
         LOGGER.exception("SciLitRAG answer pipeline failed.")
         return 1
+
+    finally:
+        # The CLI owns this pipeline instance, so it must release all
+        # model and connection resources before the process exits.
+        if pipeline is not None:
+            pipeline.close()
 
 
 if __name__ == "__main__":

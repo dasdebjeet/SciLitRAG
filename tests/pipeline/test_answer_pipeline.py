@@ -90,6 +90,12 @@ def test_general_conversation_skips_retrieval(
     assert result.context_token_count == 0
 
     mock_generator.generate.assert_called_once()
+
+    # The generator remains alive until the pipeline is explicitly closed.
+    mock_generator.close.assert_not_called()
+
+    pipeline.close()
+
     mock_generator.close.assert_called_once()
 
     # Confirm the direct-conversation prompt was used.
@@ -141,11 +147,16 @@ def test_arxiv_filter_prevents_general_conversation_bypass(
         == "2611.17111"
     )
 
-    # Retrieval resources must be released even when no evidence is found.
-    mock_hybrid.close.assert_called_once()
-
-    # No evidence means no generator initialization or generation.
+    # No evidence means generation is never initialized or invoked.
     mock_generator.generate.assert_not_called()
+    mock_generator.close.assert_not_called()
+
+    # Retrieval resources remain alive until pipeline shutdown.
+    mock_hybrid.close.assert_not_called()
+
+    pipeline.close()
+
+    mock_hybrid.close.assert_called_once()
     mock_generator.close.assert_not_called()
 
     assert result.citations == []
@@ -293,7 +304,12 @@ def test_answer_uses_context_aware_query_for_retrieval_and_reranking(
     # The selected paper scope must remain active for follow-up questions.
     assert mock_hybrid.search.call_args.kwargs["arxiv_id"] == arxiv_id
 
-    # Retrieval resources must be released before generation is considered.
+    # Persistent retrieval resources must remain alive between requests.
+    mock_reranker.close.assert_not_called()
+    mock_hybrid.close.assert_not_called()
+
+    pipeline.close()
+
     mock_reranker.close.assert_called_once()
     mock_hybrid.close.assert_called_once()
 

@@ -8,6 +8,7 @@ the HTTP layer.
 """
 
 from __future__ import annotations
+import time
 
 import logging
 from threading import Lock
@@ -53,9 +54,11 @@ def ask_question(
 ) -> AskResponse:
     """Generate an evidence-grounded answer for a research question."""
 
+    request_started = time.perf_counter()
+
     try:
-        # Serialize the complete model lifecycle to prevent concurrent
-        # requests from competing for GPU memory.
+        # Serialize inference while the shared GPU model lifecycle is
+        # protected by the application-level inference lock.
         with inference_lock:
             result = pipeline.answer(
                 question=request.question,
@@ -66,7 +69,7 @@ def ask_question(
                 ],
             )
 
-        # Convert internal Evidence objects into API response models.
+        # Convert internal evidence records into API response models.
         citations = [
             CitationResponse(
                 evidence_id=item.evidence_id,
@@ -79,6 +82,19 @@ def ask_question(
             )
             for item in result.citations
         ]
+
+        # Include pipeline execution and API response construction.
+        # This is server-side processing time, not browser/network time.
+        total_duration = time.perf_counter() - request_started
+
+        LOGGER.info(
+            "Research request completed | duration=%.3fs | "
+            "citations=%d | context_tokens=%d | generated_tokens=%s",
+            total_duration,
+            len(citations),
+            result.context_token_count,
+            getattr(result, "generation_token_count", None),
+        )
 
         return AskResponse(
             question=result.question,
@@ -100,16 +116,17 @@ def ask_question(
                 "tokens_per_second",
                 None,
             ),
+            total_response_duration_seconds=total_duration,
         )
 
-    except Exception as exc:
+    except Exception:
+        # Do not put user prompts or retrieved paper content in error logs.
         LOGGER.exception(
-            "Failed to process research question: %s",
-            request.question,
+            "Research request failed | elapsed=%.3fs",
+            time.perf_counter() - request_started,
         )
 
-        # Do not expose internal exception details or stack traces to clients.
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="The research question could not be processed.",
-        ) from exc
+        )

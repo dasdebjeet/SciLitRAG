@@ -25,6 +25,7 @@ Limitations:
 """
 
 from __future__ import annotations
+import time
 
 import argparse
 import logging
@@ -94,8 +95,15 @@ class DenseRetriever:
         self.model: SentenceTransformer | None = None
 
         try:
-            # Load the model once so subsequent searches reuse it.
-            logger.info("Loading embedding model: %s", model_name)
+            # Load the embedding model once so subsequent searches reuse it.
+            model_start = time.perf_counter()
+
+            logger.info(
+                "[MODEL] Loading embedding model | model=%s "
+                "| component=DenseRetriever | device=%s",
+                model_name,
+                device,
+            )
 
             self.model = SentenceTransformer(
                 model_name,
@@ -103,6 +111,7 @@ class DenseRetriever:
             )
 
             model_dimensions = self.model.get_embedding_dimension()
+            model_duration = time.perf_counter() - model_start
 
             if model_dimensions != EXPECTED_DIMENSIONS:
                 raise ValueError(
@@ -111,9 +120,12 @@ class DenseRetriever:
                 )
 
             logger.info(
-                "Embedding model loaded | dimensions=%d | device=%s",
+                "[MODEL] Embedding model loaded | model=%s "
+                "| dimensions=%d | device=%s | duration=%.2fs",
+                model_name,
                 model_dimensions,
                 device,
+                model_duration,
             )
 
             # Connect to the existing Qdrant service.
@@ -298,11 +310,27 @@ class DenseRetriever:
         return results
 
     def close(self) -> None:
-        """Release the Qdrant client connection if it was initialized."""
+        """Release the embedding model and Qdrant client owned by this instance."""
 
+        # Close the client first so its connection resources are released.
         if self.client is not None:
             self.client.close()
             self.client = None
+
+        # Explicitly drop the embedding model reference. This matters when
+        # the retriever is used independently of the application lifecycle.
+        if self.model is not None:
+            del self.model
+            self.model = None
+
+        import gc
+
+        gc.collect()
+
+        if self.device.startswith("cuda") and torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        logger.info("Dense retriever resources released.")
 
 
 # ---------------------------------------------------------------------------

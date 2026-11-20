@@ -24,6 +24,7 @@ Limitations:
 """
 
 from __future__ import annotations
+import time
 
 import argparse
 import logging
@@ -100,9 +101,13 @@ class CrossEncoderReranker:
         self.batch_size = batch_size
         self.device = device
 
+        model_start = time.perf_counter()
+
         LOGGER.info(
-            "Loading cross-encoder model: %s",
+            "[MODEL] Loading reranker | model=%s "
+            "| component=CrossEncoderReranker | device=%s",
             model_name,
+            device,
         )
 
         try:
@@ -117,11 +122,16 @@ class CrossEncoderReranker:
                 f"Failed to load reranker model '{model_name}': {exc}"
             ) from exc
 
+        model_duration = time.perf_counter() - model_start
+
         LOGGER.info(
-            "Cross-encoder loaded | device=%s | batch_size=%d | max_length=%d",
+            "[MODEL] Reranker loaded | model=%s | device=%s "
+            "| batch_size=%d | max_length=%d | duration=%.2fs",
+            model_name,
             device,
             batch_size,
             max_length,
+            model_duration,
         )
 
     def rerank(
@@ -187,7 +197,7 @@ class CrossEncoderReranker:
             scores = self.model.predict(
                 sentence_pairs,
                 batch_size=self.batch_size,
-                show_progress_bar=True,
+                show_progress_bar=False,
                 convert_to_numpy=True,
             )
 

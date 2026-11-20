@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from rank_bm25 import BM25Okapi
+import heapq
 
 from scilitrag.core.paths import DEFAULT_CHUNKS_PATH
 
@@ -47,7 +48,7 @@ LOGGER = logging.getLogger(__name__)
 #
 # Also retain comparison and mathematical operators as separate tokens.
 TOKEN_PATTERN = re.compile(
-    r"(?u)[\w]+(?:[.-][\w]+)*|[<>]=?|[=±×÷]+"
+    r"(?u)\b[\w]+(?:[.-][\w]+)*\b|[<>]=?|[=±×÷]+"
 )
 
 
@@ -254,7 +255,10 @@ class BM25Retriever:
 
         # Apply the paper filter before selecting top results. Filtering only
         # after top-k selection could exclude relevant chunks from that paper.
-        ranked_indices = sorted(
+        # Select only the highest-scoring matching chunks instead of
+        # sorting the entire corpus for every search request.
+        ranked_indices = heapq.nlargest(
+            top_k,
             (
                 index
                 for index, score in enumerate(scores)
@@ -265,7 +269,6 @@ class BM25Retriever:
                 )
             ),
             key=lambda index: scores[index],
-            reverse=True,
         )
 
         results: list[dict[str, Any]] = []

@@ -28,6 +28,7 @@ Limitations:
 
 from __future__ import annotations
 
+import time
 import argparse
 import logging
 import sys
@@ -241,11 +242,19 @@ class HybridRetriever:
 
         try:
             # Both methods receive the same query and paper filter.
+            # Measure lexical retrieval independently.
+            bm25_start = time.perf_counter()
+
             bm25_results = self.bm25.search(
                 query=query,
                 top_k=retrieval_k,
                 arxiv_id=arxiv_id,
             )
+
+            bm25_duration = time.perf_counter() - bm25_start
+
+            # Measure semantic retrieval independently.
+            dense_start = time.perf_counter()
 
             dense_results = self.dense.search(
                 query=query,
@@ -253,27 +262,33 @@ class HybridRetriever:
                 arxiv_id=arxiv_id,
             )
 
+            dense_duration = time.perf_counter() - dense_start
+
             LOGGER.info(
-                "Candidate retrieval completed | BM25=%d | dense=%d",
-                len(bm25_results),
-                len(dense_results),
+                "Retrieval timings | BM25=%.3fs | Dense=%.3fs",
+                bm25_duration,
+                dense_duration,
             )
+
+            # Measure reciprocal rank fusion independently.
+            rrf_start = time.perf_counter()
 
             fused_results = self.reciprocal_rank_fusion(
                 result_lists=[bm25_results, dense_results],
                 rrf_k=rrf_k,
             )
 
+            rrf_duration = time.perf_counter() - rrf_start
+
+            # Apply the requested final candidate limit after reciprocal rank fusion.
+            # RRF may produce more unique chunks than either individual retriever.
             final_results = fused_results[:top_k]
 
-            # Assign final fused ranks without overwriting source-specific ranks.
-            for rank, result in enumerate(final_results, start=1):
-                result["rank"] = rank
-
             LOGGER.info(
-                "RRF completed | unique_chunks=%d | returned=%d",
+                "RRF completed | unique_chunks=%d | returned=%d | duration=%.3fs",
                 len(fused_results),
                 len(final_results),
+                rrf_duration,
             )
 
             return final_results

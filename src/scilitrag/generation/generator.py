@@ -186,7 +186,12 @@ class QwenGenerator:
             bnb_4bit_use_double_quant=True,
         )
 
-        logger.info("Loading Qwen3-14B in 4-bit NF4 mode...")
+        logger.info(
+            "[MODEL] Loading generator | model=%s "
+            "| component=QwenGenerator | device=cuda:0 "
+            "| quantization=4-bit-NF4",
+            self.model_name,
+        )
 
         self._log_gpu_memory("Before model loading")
 
@@ -217,6 +222,15 @@ class QwenGenerator:
 
         # Wait for asynchronous CUDA operations before measuring time.
         torch.cuda.synchronize(0)
+
+        model_duration = time.perf_counter() - model_start
+
+        logger.info(
+            "[MODEL] Generator loaded | model=%s | device=cuda:0 "
+            "| quantization=4-bit-NF4 | duration=%.2fs",
+            self.model_name,
+            model_duration,
+        )
 
         model_duration = time.perf_counter() - model_start
 
