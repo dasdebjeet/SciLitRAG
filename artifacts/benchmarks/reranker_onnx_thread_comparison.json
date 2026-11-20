@@ -1,0 +1,238 @@
+{
+  "model": "BAAI/bge-reranker-v2-m3",
+  "model_path": "artifacts/models/bge-reranker-v2-m3-fp32.onnx",
+  "candidate_count": 20,
+  "batch_size": 8,
+  "max_length": 1024,
+  "warmup_runs": 1,
+  "measured_runs": 3,
+  "execution_mode": "ORT_SEQUENTIAL",
+  "graph_optimization": "ORT_ENABLE_ALL",
+  "inter_op_threads": 1,
+  "tested_intra_op_threads": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "score_error_tolerance": 1e-05,
+  "results": [
+    {
+      "intra_op_threads": 1,
+      "execution_mode": "ORT_SEQUENTIAL",
+      "inter_op_threads": 1,
+      "durations_seconds": [
+        65.95345476300099,
+        65.88348785699964,
+        65.8748136389986
+      ],
+      "median_seconds": 65.88348785699964,
+      "mean_seconds": 65.90391875299974,
+      "minimum_seconds": 65.8748136389986,
+      "maximum_seconds": 65.95345476300099,
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "full_ranking_exact_match": true,
+        "top5_overlap_count": 5,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "onnx_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "within_score_tolerance": true
+      }
+    },
+    {
+      "intra_op_threads": 2,
+      "execution_mode": "ORT_SEQUENTIAL",
+      "inter_op_threads": 1,
+      "durations_seconds": [
+        36.312069972000245,
+        36.398293225998714,
+        36.60765760200047
+      ],
+      "median_seconds": 36.398293225998714,
+      "mean_seconds": 36.43934026666648,
+      "minimum_seconds": 36.312069972000245,
+      "maximum_seconds": 36.60765760200047,
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "full_ranking_exact_match": true,
+        "top5_overlap_count": 5,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "onnx_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "within_score_tolerance": true
+      }
+    },
+    {
+      "intra_op_threads": 4,
+      "execution_mode": "ORT_SEQUENTIAL",
+      "inter_op_threads": 1,
+      "durations_seconds": [
+        21.172374381998452,
+        22.155410136001592,
+        22.76696873199944
+      ],
+      "median_seconds": 22.155410136001592,
+      "mean_seconds": 22.031584416666494,
+      "minimum_seconds": 21.172374381998452,
+      "maximum_seconds": 22.76696873199944,
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "full_ranking_exact_match": true,
+        "top5_overlap_count": 5,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "onnx_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "within_score_tolerance": true
+      }
+    },
+    {
+      "intra_op_threads": 8,
+      "execution_mode": "ORT_SEQUENTIAL",
+      "inter_op_threads": 1,
+      "durations_seconds": [
+        15.203226594998341,
+        15.073932094999691,
+        15.179309951001414
+      ],
+      "median_seconds": 15.179309951001414,
+      "mean_seconds": 15.152156213666482,
+      "minimum_seconds": 15.073932094999691,
+      "maximum_seconds": 15.203226594998341,
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "full_ranking_exact_match": true,
+        "top5_overlap_count": 5,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "onnx_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "within_score_tolerance": true
+      }
+    },
+    {
+      "intra_op_threads": 16,
+      "execution_mode": "ORT_SEQUENTIAL",
+      "inter_op_threads": 1,
+      "durations_seconds": [
+        12.41091787500045,
+        12.614525901999514,
+        12.451253108998571
+      ],
+      "median_seconds": 12.451253108998571,
+      "mean_seconds": 12.492232295332846,
+      "minimum_seconds": 12.41091787500045,
+      "maximum_seconds": 12.614525901999514,
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "full_ranking_exact_match": true,
+        "top5_overlap_count": 5,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "onnx_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "within_score_tolerance": true
+      }
+    }
+  ],
+  "best_eligible_configuration": {
+    "intra_op_threads": 16,
+    "execution_mode": "ORT_SEQUENTIAL",
+    "inter_op_threads": 1,
+    "durations_seconds": [
+      12.41091787500045,
+      12.614525901999514,
+      12.451253108998571
+    ],
+    "median_seconds": 12.451253108998571,
+    "mean_seconds": 12.492232295332846,
+    "minimum_seconds": 12.41091787500045,
+    "maximum_seconds": 12.614525901999514,
+    "quality": {
+      "max_absolute_score_error": 1.5497207641601562e-06,
+      "mean_absolute_score_error": 3.5450793234304e-07,
+      "top5_exact_match": true,
+      "full_ranking_exact_match": true,
+      "top5_overlap_count": 5,
+      "reference_top5": [
+        "fd0943e5a3beddc9",
+        "27d3a494b86120e3",
+        "b3599a57240fb3ab",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ],
+      "onnx_top5": [
+        "fd0943e5a3beddc9",
+        "27d3a494b86120e3",
+        "b3599a57240fb3ab",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ],
+      "within_score_tolerance": true
+    }
+  }
+}

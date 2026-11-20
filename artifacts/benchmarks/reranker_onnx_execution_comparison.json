@@ -1,0 +1,148 @@
+{
+  "model": "BAAI/bge-reranker-v2-m3",
+  "model_path": "artifacts/models/bge-reranker-v2-m3-fp32.onnx",
+  "candidate_count": 20,
+  "batch_size": 8,
+  "max_length": 1024,
+  "warmup_runs": 2,
+  "measured_runs": 5,
+  "thread_configuration": {
+    "intra_op": 8,
+    "inter_op": 4
+  },
+  "graph_optimization": "ORT_ENABLE_ALL",
+  "execution_provider": "CPUExecutionProvider",
+  "results": {
+    "sequential": {
+      "execution_mode": "sequential",
+      "timing": {
+        "tokenization": {
+          "durations_seconds": [
+            0.005102604000057909,
+            0.004971107000528718,
+            0.005279766000057862,
+            0.005000537000341865,
+            0.004996822000066459
+          ],
+          "median_seconds": 0.005000537000341865,
+          "mean_seconds": 0.005070167200210562,
+          "minimum_seconds": 0.004971107000528718,
+          "maximum_seconds": 0.005279766000057862
+        },
+        "inference_only": {
+          "durations_seconds": [
+            14.351630713000304,
+            14.757125041999643,
+            14.456240244000583,
+            14.271130981999704,
+            14.262482359000387
+          ],
+          "median_seconds": 14.351630713000304,
+          "mean_seconds": 14.419721868000124,
+          "minimum_seconds": 14.262482359000387,
+          "maximum_seconds": 14.757125041999643
+        },
+        "end_to_end": {
+          "durations_seconds": [
+            14.123171959000501,
+            14.354201320999891,
+            14.472203172999798,
+            14.528237214999535,
+            14.584597617999862
+          ],
+          "median_seconds": 14.472203172999798,
+          "mean_seconds": 14.412482257199917,
+          "minimum_seconds": 14.123171959000501,
+          "maximum_seconds": 14.584597617999862
+        }
+      },
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "top5_overlap_count": 5,
+        "full_ranking_exact_match": true,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "current_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ]
+      }
+    },
+    "parallel": {
+      "execution_mode": "parallel",
+      "timing": {
+        "tokenization": {
+          "durations_seconds": [
+            0.004717705000075512,
+            0.004573729000185267,
+            0.005185177000385011,
+            0.004825642000469088,
+            0.0056782219999149675
+          ],
+          "median_seconds": 0.004825642000469088,
+          "mean_seconds": 0.004996095000205969,
+          "minimum_seconds": 0.004573729000185267,
+          "maximum_seconds": 0.0056782219999149675
+        },
+        "inference_only": {
+          "durations_seconds": [
+            19.670050342999275,
+            18.653647813000134,
+            18.788953106000008,
+            19.256799697999668,
+            19.569242995999957
+          ],
+          "median_seconds": 19.256799697999668,
+          "mean_seconds": 19.18773879119981,
+          "minimum_seconds": 18.653647813000134,
+          "maximum_seconds": 19.670050342999275
+        },
+        "end_to_end": {
+          "durations_seconds": [
+            18.276104519,
+            18.726724965000358,
+            18.130447026999718,
+            15.934976077999636,
+            16.651751738999337
+          ],
+          "median_seconds": 18.130447026999718,
+          "mean_seconds": 17.54400086559981,
+          "minimum_seconds": 15.934976077999636,
+          "maximum_seconds": 18.726724965000358
+        }
+      },
+      "quality": {
+        "max_absolute_score_error": 1.5497207641601562e-06,
+        "mean_absolute_score_error": 3.5450793234304e-07,
+        "top5_exact_match": true,
+        "top5_overlap_count": 5,
+        "full_ranking_exact_match": true,
+        "reference_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ],
+        "current_top5": [
+          "fd0943e5a3beddc9",
+          "27d3a494b86120e3",
+          "b3599a57240fb3ab",
+          "da04edabdf674992",
+          "6142f3e43ffeb522"
+        ]
+      }
+    }
+  },
+  "parallel_vs_sequential_end_to_end_speedup": 0.7982264944404243
+}

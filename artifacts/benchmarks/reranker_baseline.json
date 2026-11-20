@@ -1,0 +1,724 @@
+{
+  "query": "How does spatiotemporal learning improve quantification of pore-space evolution and fluid displacement?",
+  "model": "BAAI/bge-reranker-v2-m3",
+  "backend": "sentence-transformers-pytorch",
+  "device": "cpu",
+  "candidate_count": 20,
+  "batch_size": 8,
+  "max_length": 1024,
+  "warmup_runs": 1,
+  "measured_runs": 5,
+  "durations_seconds": [
+    9.473731847996532,
+    9.77521285200055,
+    10.703583367001556,
+    10.973393054002372,
+    11.055006940998283
+  ],
+  "statistics": {
+    "minimum": 9.473731847996532,
+    "maximum": 11.055006940998283,
+    "mean": 10.396185612399858,
+    "median": 10.703583367001556
+  },
+  "memory_after_model_loading_mib": {
+    "rss_mib": 2995.28125,
+    "anonymous_mib": 1421.64453125
+  },
+  "memory_after_inference_mib": {
+    "rss_mib": 4160.1171875,
+    "anonymous_mib": 1432.82421875
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "score": 55.185817460367524,
+      "chunk_id": "da04edabdf674992",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 29,
+      "text": "Supplementary Information Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement Zhuangzhuang Ma1,2, Rukuan Chai2,*, Qianqian Ma1,2, Yanghua Wang1,2, Branko Bijeljic2, Martin J. Blunt2,* 1Resource Geophysics Academy, Imperial College London, London, SW7 2BP, United Kingdom 2Department of Earth Science and Engineering, Imperial College London, London, SW7 2AZ, United Kingdom *Corresponding authors: Rukuan Chai: r.chai@imperial.ac.uk Martin J. Blunt: m.blunt@imperial.ac.uk Contents Supplementary Figures 30 Supplementary Tables 33 Supplementary Notes 41 Supplementary Methods 45 Supplementary References 48",
+      "metadata": {
+        "chunk_id": "da04edabdf674992",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 29,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Supplementary Information Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement Zhuangzhuang Ma1,2, Rukuan Chai2,*, Qianqian Ma1,2, Yanghua Wang1,2, Branko Bijeljic2, Martin J. Blunt2,* 1Resource Geophysics Academy, Imperial College London, London, SW7 2BP, United Kingdom 2Department of Earth Science and Engineering, Imperial College London, London, SW7 2AZ, United Kingdom *Corresponding authors: Rukuan Chai: r.chai@imperial.ac.uk Martin J. Blunt: m.blunt@imperial.ac.uk Contents Supplementary Figures 30 Supplementary Tables 33 Supplementary Notes 41 Supplementary Methods 45 Supplementary References 48",
+        "token_count": 182,
+        "char_count": 649,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.03252247488101534,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 1,
+      "bm25_score": 55.185817460367524,
+      "dense_rank": 2,
+      "dense_score": 0.784078
+    },
+    {
+      "rank": 2,
+      "score": 54.697179456825225,
+      "chunk_id": "fd0943e5a3beddc9",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 1,
+      "text": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement Zhuangzhuang Ma1,2, Rukuan Chai2*, Qianqian Ma1,2, Yanghua Wang1,2, Branko Bijeljic2, Martin J. Blunt2* 1Resource Geophysics Academy, Imperial College London, London,2026 SW7 2BP United Kingdom. 2*Department of Earth Science and Engineering, Imperial College London, London, SW7 2AZ, United Kingdom.Nov 12 *Corresponding author(s). E-mail(s): r.chai@imperial.ac.uk; m.blunt@imperial.ac.uk; Abstract Pore-space evolution and fluid displacement influence how rocks transmit and store fluids, affecting geological carbon storage, underground hydrogen stor- age and groundwater contaminant transport. A single time-resolved micro-CT experiment may produce tens to hundreds of three-dimensional images, and segmentation is required to quantify physical properties and run image-based simulations. Traditional methods such as thresholding perform poorly on noisy, low-contrast images and need manual adjustment per image; 3D deep learning[physics.flu-dyn] networks segment each image without temporal information, so their errors vary between images and could be mistaken for physical change. Here we introduce a transformer-based 4D segmentation framework combining spatial and temporal information. It uses sequential images to resolve ambiguous phase assignments and separate physical change from segmentation error. The method is tested on images of mineral dissolution: it measures pore-volume growth and rock boundaries more accurately than an equivalent 3D model that ignores temporal information. It also captures the increase in permeability verified against ref- erence segmentations and flow simulations. The advantage transfers to another dissolution sample without retraining. On two other datasets of fluid displace- ment, it reduces spurious changes in predicted rock and porosity fluctuations and accurately identifies filling events. Spatiotemporal segmentation turns sequences of hundreds of three-dimensional images into more reliable quantitative mea- surements of por",
+      "metadata": {
+        "chunk_id": "fd0943e5a3beddc9",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 1,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement Zhuangzhuang Ma1,2, Rukuan Chai2*, Qianqian Ma1,2, Yanghua Wang1,2, Branko Bijeljic2, Martin J. Blunt2* 1Resource Geophysics Academy, Imperial College London, London,2026 SW7 2BP United Kingdom. 2*Department of Earth Science and Engineering, Imperial College London, London, SW7 2AZ, United Kingdom.Nov 12 *Corresponding author(s). E-mail(s): r.chai@imperial.ac.uk; m.blunt@imperial.ac.uk; Abstract Pore-space evolution and fluid displacement influence how rocks transmit and store fluids, affecting geological carbon storage, underground hydrogen stor- age and groundwater contaminant transport. A single time-resolved micro-CT experiment may produce tens to hundreds of three-dimensional images, and segmentation is required to quantify physical properties and run image-based simulations. Traditional methods such as thresholding perform poorly on noisy, low-contrast images and need manual adjustment per image; 3D deep learning[physics.flu-dyn] networks segment each image without temporal information, so their errors vary between images and could be mistaken for physical change. Here we introduce a transformer-based 4D segmentation framework combining spatial and temporal information. It uses sequential images to resolve ambiguous phase assignments and separate physical change from segmentation error. The method is tested on images of mineral dissolution: it measures pore-volume growth and rock boundaries more accurately than an equivalent 3D model that ignores temporal information. It also captures the increase in permeability verified against ref- erence segmentations and flow simulations. The advantage transfers to another dissolution sample without retraining. On two other datasets of fluid displace- ment, it reduces spurious changes in predicted rock and porosity fluctuations and accurately identifies filling events. Spatiotemporal segmentation turns sequences of hundreds of three-dimensional images into more reliable quantitative mea- surements of por",
+        "token_count": 500,
+        "char_count": 2077,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.03252247488101534,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 2,
+      "bm25_score": 54.697179456825225,
+      "dense_rank": 1,
+      "dense_score": 0.799711
+    },
+    {
+      "rank": 3,
+      "score": 49.760000115736545,
+      "chunk_id": "b3599a57240fb3ab",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 1,
+      "text": "s to another dissolution sample without retraining. On two other datasets of fluid displace- ment, it reduces spurious changes in predicted rock and porosity fluctuations and accurately identifies filling events. Spatiotemporal segmentation turns sequences of hundreds of three-dimensional images into more reliable quantitative mea- surements of pore-space evolution and fluid displacement without per-image parameter adjustment to support the analysis of time-resolved CT imaging.arXiv:2611.17111v1 1",
+      "metadata": {
+        "chunk_id": "b3599a57240fb3ab",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 1,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "s to another dissolution sample without retraining. On two other datasets of fluid displace- ment, it reduces spurious changes in predicted rock and porosity fluctuations and accurately identifies filling events. Spatiotemporal segmentation turns sequences of hundreds of three-dimensional images into more reliable quantitative mea- surements of pore-space evolution and fluid displacement without per-image parameter adjustment to support the analysis of time-resolved CT imaging.arXiv:2611.17111v1 1",
+        "token_count": 122,
+        "char_count": 502,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.031746031746031744,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 3,
+      "bm25_score": 49.760000115736545,
+      "dense_rank": 3,
+      "dense_score": 0.7385773
+    },
+    {
+      "rank": 6,
+      "score": 40.48491467041489,
+      "chunk_id": "27d3a494b86120e3",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 14,
+      "text": "Discussion PoreTimeNet uses temporal information to improve measurements of pore-space evo- lution and fluid displacement. During dissolution, pore-volume growth quantifies the dissolution of solid material, while changes in pore-boundary geometry affect fluid flow. The 3D and 4D models were trained using the same annotations and training settings. The 3D model underestimated the final-to-initial permeability ratio, K(646)/K(0), by approximately 27%, whereas the 4D estimate was closer to the reference value. More accurate estimates of pore-volume growth and permeability changes help charac- terise how dissolution alters the relationship between porosity and permeability. The random boundary perturbations illustrated why segmentation evaluation needs both volume and boundary measurements. Exchanging equal numbers of rock and pore vox- els preserved porosity while reducing permeability and increasing mineral dissolution rate. Differences in pore-boundary geometry can therefore affect both flow through the pore space and transport to reactive mineral surfaces. These perturbations comple- ment phase-volume errors by showing how pore-boundary geometry affects calculated permeability and mineral dissolution rate. The three comparisons during dissolution show that the 4D model’s gains in poros- ity and boundary accuracy arise from information shared across distinct images. We also compared with another 3D method nnU-Net that again performed worse than PoreTimeNet. In Luxembourg sandstone, improved brine identification recovered more of the observed oil filling and more of the largest connected region occupied by advancing oil. Reducing the misclassification of pores as rock in the earlier images preserves the brine- to-oil changes used to measure filling. The Ketton limestone displacement experiments complement this result by showing more consistent rock geometry during drainage and imbibition. The optional process-specific consistency loss shown in Fig. 1c could incorporate constraints such as constant porosity during fluid displacement through a fixed rock matrix. Spatiotemporal segmentation could support",
+      "metadata": {
+        "chunk_id": "27d3a494b86120e3",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 14,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Discussion PoreTimeNet uses temporal information to improve measurements of pore-space evo- lution and fluid displacement. During dissolution, pore-volume growth quantifies the dissolution of solid material, while changes in pore-boundary geometry affect fluid flow. The 3D and 4D models were trained using the same annotations and training settings. The 3D model underestimated the final-to-initial permeability ratio, K(646)/K(0), by approximately 27%, whereas the 4D estimate was closer to the reference value. More accurate estimates of pore-volume growth and permeability changes help charac- terise how dissolution alters the relationship between porosity and permeability. The random boundary perturbations illustrated why segmentation evaluation needs both volume and boundary measurements. Exchanging equal numbers of rock and pore vox- els preserved porosity while reducing permeability and increasing mineral dissolution rate. Differences in pore-boundary geometry can therefore affect both flow through the pore space and transport to reactive mineral surfaces. These perturbations comple- ment phase-volume errors by showing how pore-boundary geometry affects calculated permeability and mineral dissolution rate. The three comparisons during dissolution show that the 4D model’s gains in poros- ity and boundary accuracy arise from information shared across distinct images. We also compared with another 3D method nnU-Net that again performed worse than PoreTimeNet. In Luxembourg sandstone, improved brine identification recovered more of the observed oil filling and more of the largest connected region occupied by advancing oil. Reducing the misclassification of pores as rock in the earlier images preserves the brine- to-oil changes used to measure filling. The Ketton limestone displacement experiments complement this result by showing more consistent rock geometry during drainage and imbibition. The optional process-specific consistency loss shown in Fig. 1c could incorporate constraints such as constant porosity during fluid displacement through a fixed rock matrix. Spatiotemporal segmentation could support",
+        "token_count": 500,
+        "char_count": 2137,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.030776515151515152,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 6,
+      "bm25_score": 40.48491467041489,
+      "dense_rank": 4,
+      "dense_score": 0.7024057
+    },
+    {
+      "rank": 5,
+      "score": 40.72215736368287,
+      "chunk_id": "f9ad67440755c7ec",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 15,
+      "text": "Our results show that segmentation errors can distort measurements of pore-space evolution and fluid displacement and alter the physical properties calculated from images. Even when porosity is unchanged, differences in pore-boundary geometry can change calculated permeability and mineral dissolution rate. Segmentation should therefore be evaluated through the physical measurements and simulations it supports, alongside phase-identification accuracy. By using information from other images in the time sequence, PoreTimeNet improves measurements of pore-volume growth and oil filling and estimates of permeability changes. Extending this approach to faster labo- ratory CT could help measure changes in pore geometry and fluid occupancy at higher temporal resolution. These measurements could help explain how pore-scale processes govern fluid transport in geological storage and groundwater systems. Methods Data preparation We selected time-resolved micro-CT datasets to evaluate whether temporal infor- mation improves measurements of pore-space evolution and fluid displacement. Carbonate dissolution allowed us to assess measurements of changing pore geometry. Drainage and imbibition in Ketton limestone tested whether the predicted rock geom- etry remained consistent as fluids moved through the fixed pore space. Oil flooding in Luxembourg sandstone provided low-contrast laboratory CT images for assessing fluid identification and measurements of oil filling. Two further dissolution sequences from another Ketton sample tested transfer to new experimental conditions without retraining. Table 2 summarises all six sequences. Table 2: Overview of the time-resolved micro-CT datasets. Voxel sizes are those used in this study. Dataset / process Imaging technique Voxel size Data source (μm) Ketton limestone: Laboratory micro-CT 6.09 [9] water-wet dissolution (Seq1) Ketton limestone: Laboratory micro-CT 5.2 [32] mixed-wet dissolution (Seq2) Ketton limestone: Laboratory micro-CT 5.2 [32] water-wet dissolution (Seq3) Ketton limestone: Synchrotron micro-CT 3.28 [30] drainage Ketton limestone",
+      "metadata": {
+        "chunk_id": "f9ad67440755c7ec",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 15,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Our results show that segmentation errors can distort measurements of pore-space evolution and fluid displacement and alter the physical properties calculated from images. Even when porosity is unchanged, differences in pore-boundary geometry can change calculated permeability and mineral dissolution rate. Segmentation should therefore be evaluated through the physical measurements and simulations it supports, alongside phase-identification accuracy. By using information from other images in the time sequence, PoreTimeNet improves measurements of pore-volume growth and oil filling and estimates of permeability changes. Extending this approach to faster labo- ratory CT could help measure changes in pore geometry and fluid occupancy at higher temporal resolution. These measurements could help explain how pore-scale processes govern fluid transport in geological storage and groundwater systems. Methods Data preparation We selected time-resolved micro-CT datasets to evaluate whether temporal infor- mation improves measurements of pore-space evolution and fluid displacement. Carbonate dissolution allowed us to assess measurements of changing pore geometry. Drainage and imbibition in Ketton limestone tested whether the predicted rock geom- etry remained consistent as fluids moved through the fixed pore space. Oil flooding in Luxembourg sandstone provided low-contrast laboratory CT images for assessing fluid identification and measurements of oil filling. Two further dissolution sequences from another Ketton sample tested transfer to new experimental conditions without retraining. Table 2 summarises all six sequences. Table 2: Overview of the time-resolved micro-CT datasets. Voxel sizes are those used in this study. Dataset / process Imaging technique Voxel size Data source (μm) Ketton limestone: Laboratory micro-CT 6.09 [9] water-wet dissolution (Seq1) Ketton limestone: Laboratory micro-CT 5.2 [32] mixed-wet dissolution (Seq2) Ketton limestone: Laboratory micro-CT 5.2 [32] water-wet dissolution (Seq3) Ketton limestone: Synchrotron micro-CT 3.28 [30] drainage Ketton limestone",
+        "token_count": 500,
+        "char_count": 2105,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.03076923076923077,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 5,
+      "bm25_score": 40.72215736368287,
+      "dense_rank": 5,
+      "dense_score": 0.658937
+    },
+    {
+      "rank": 4,
+      "score": 40.989217976033686,
+      "chunk_id": "6142f3e43ffeb522",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 2,
+      "text": "blurring: projections acquired at different stages of displacement are combined in one reconstruction, producing intermediate greyscale values [16, 17]. When these intermediate greyscale values resemble those of rock, segmentation can misclassify a fluid-filled pore as rock. If the same pore is correctly identified in a later image, the segmentation suggests that new pore space has formed, although only the fluid occupying the pore has changed. In laboratory CT, shorter duration scans can increase image noise, making phase identification more difficult as tem- poral resolution improves [16, 18, 19]. Noise and weak phase contrast complicate thresholding and watershed segmentation, while manual adjustment for each image becomes laborious across sequences of tens to hundreds of images [20, 21]. For example, Tang et al. reported that a conventional workflow involving registration, segmenta- tion and morphological adjustment required approximately 30 hours to process 20 3D images [22]. Annotation-free supervoxel methods offer rapid segmentation of noisy mul- tiphase images [23]. Deep learning has improved the spatial resolution of multiphase images [24] and their segmentation [25–27]. However, 3D networks that process each image independently do not use information from other images in the time sequence. Using this information offers a way to resolve ambiguous phase assignments across the sequence. The benefit of temporal information should therefore be assessed through both segmentation accuracy and the resulting measurements of pore geometry and fluid occupancy. Here we introduce PoreTimeNet, a spatiotemporal (4D) segmentation network that uses successive images to improve measurements of pore-space evolution and fluid dis- placement. We compare it with a 3D network that uses the same spatial architecture 2",
+      "metadata": {
+        "chunk_id": "6142f3e43ffeb522",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 2,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "blurring: projections acquired at different stages of displacement are combined in one reconstruction, producing intermediate greyscale values [16, 17]. When these intermediate greyscale values resemble those of rock, segmentation can misclassify a fluid-filled pore as rock. If the same pore is correctly identified in a later image, the segmentation suggests that new pore space has formed, although only the fluid occupying the pore has changed. In laboratory CT, shorter duration scans can increase image noise, making phase identification more difficult as tem- poral resolution improves [16, 18, 19]. Noise and weak phase contrast complicate thresholding and watershed segmentation, while manual adjustment for each image becomes laborious across sequences of tens to hundreds of images [20, 21]. For example, Tang et al. reported that a conventional workflow involving registration, segmenta- tion and morphological adjustment required approximately 30 hours to process 20 3D images [22]. Annotation-free supervoxel methods offer rapid segmentation of noisy mul- tiphase images [23]. Deep learning has improved the spatial resolution of multiphase images [24] and their segmentation [25–27]. However, 3D networks that process each image independently do not use information from other images in the time sequence. Using this information offers a way to resolve ambiguous phase assignments across the sequence. The benefit of temporal information should therefore be assessed through both segmentation accuracy and the resulting measurements of pore geometry and fluid occupancy. Here we introduce PoreTimeNet, a spatiotemporal (4D) segmentation network that uses successive images to improve measurements of pore-space evolution and fluid dis- placement. We compare it with a 3D network that uses the same spatial architecture 2",
+        "token_count": 428,
+        "char_count": 1835,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.030117753623188408,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 4,
+      "bm25_score": 40.989217976033686,
+      "dense_rank": 9,
+      "dense_score": 0.6177182
+    },
+    {
+      "rank": 8,
+      "score": 27.34957098566378,
+      "chunk_id": "4be65496242930b9",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 14,
+      "text": "filling. The Ketton limestone displacement experiments complement this result by showing more consistent rock geometry during drainage and imbibition. The optional process-specific consistency loss shown in Fig. 1c could incorporate constraints such as constant porosity during fluid displacement through a fixed rock matrix. Spatiotemporal segmentation could support faster laboratory CT imaging by improving phase identification when individual images are ambiguous. In Luxembourg sandstone, other images in the time sequence helped distinguish pores that resem- bled rock, and improved brine recognition persisted across the tested 60-, 180- and 300-s intervals between input images. Because the model uses relative image posi- tions rather than elapsed time in seconds, it could also be trained for more frequent imaging. Applying this approach to faster laboratory CT could broaden the range of pore-scale flow experiments accessible with laboratory systems and reduce reliance on synchrotron facilities. The transfer tests extend this comparison to mixed-wet and water-wet dissolution sequences from another Ketton sample. When applied to the new sequences without retraining, the 4D models retained higher phase Dice and most boundary F1 scores (Table 1). Temporal information continued to support the identification of rock and fluid regions as the experimental conditions changed. This extends the segmentation comparison to related dissolution experiments with different wettability and imaging conditions. 14",
+      "metadata": {
+        "chunk_id": "4be65496242930b9",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 14,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "filling. The Ketton limestone displacement experiments complement this result by showing more consistent rock geometry during drainage and imbibition. The optional process-specific consistency loss shown in Fig. 1c could incorporate constraints such as constant porosity during fluid displacement through a fixed rock matrix. Spatiotemporal segmentation could support faster laboratory CT imaging by improving phase identification when individual images are ambiguous. In Luxembourg sandstone, other images in the time sequence helped distinguish pores that resem- bled rock, and improved brine recognition persisted across the tested 60-, 180- and 300-s intervals between input images. Because the model uses relative image posi- tions rather than elapsed time in seconds, it could also be trained for more frequent imaging. Applying this approach to faster laboratory CT could broaden the range of pore-scale flow experiments accessible with laboratory systems and reduce reliance on synchrotron facilities. The transfer tests extend this comparison to mixed-wet and water-wet dissolution sequences from another Ketton sample. When applied to the new sequences without retraining, the 4D models retained higher phase Dice and most boundary F1 scores (Table 1). Temporal information continued to support the identification of rock and fluid regions as the experimental conditions changed. This extends the segmentation comparison to related dissolution experiments with different wettability and imaging conditions. 14",
+        "token_count": 332,
+        "char_count": 1519,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.029631255487269532,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 8,
+      "bm25_score": 27.34957098566378,
+      "dense_rank": 7,
+      "dense_score": 0.6281777
+    },
+    {
+      "rank": 9,
+      "score": 26.397020276848853,
+      "chunk_id": "b002a0fddf9b851c",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 2,
+      "text": "Introduction Fluid transport and reactions in porous rocks are central to geological carbon dioxide storage, underground hydrogen storage and contaminant transport in groundwater [1– 4]. In geological carbon storage, capillary forces retain carbon dioxide in pores and dissolution transfers it into formation water [5]. Fluid filling and snap-off, in which a fluid connection breaks, can reorganise the pathways available for flow [6, 7]. The solid structure can also evolve: mineral dissolution can change pore geometry and rock permeability [8–10]. Quantifying these processes requires accurate measurements of how fluid occupancy and pore geometry evolve over time. Time-resolved X-ray micro-tomography provides three-dimensional (3D) images of these evolving rock–fluid systems [6–8, 11, 12]. Each 3D image corresponds to a time step in the image sequence. Segmentations of successive images provide porosity, the fraction of a volume occupied by pores, and saturation, the fraction of pore space occupied by a given fluid. Segmented images enable measurements of pore structure and fluid occupancy and provide computational domains for flow and reactive trans- port simulations [13]. The accuracy of phase volumes and boundaries therefore matters both for measuring changes and for the physical calculations based on them [14]. Segmentation assigns each voxel, a 3D image element, to a material phase. Errors that vary between images can distort measurements of changes in pore space over time and obscure fluid displacement. Greyscale values can also vary between suc- cessive images even when the material remains unchanged, complicating consistent phase identification across the sequence [15]. Fluid motion during a CT scan can cause temporal blurring: projections acquired at different stages of displacement are combined in one reconstruction, producing intermediate greyscale values [16, 17]. When these intermediate greyscale values resemble those of rock, segmentation can misclassify a fluid-filled pore as rock. If the same pore is correctly identified in a later",
+      "metadata": {
+        "chunk_id": "b002a0fddf9b851c",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 2,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Introduction Fluid transport and reactions in porous rocks are central to geological carbon dioxide storage, underground hydrogen storage and contaminant transport in groundwater [1– 4]. In geological carbon storage, capillary forces retain carbon dioxide in pores and dissolution transfers it into formation water [5]. Fluid filling and snap-off, in which a fluid connection breaks, can reorganise the pathways available for flow [6, 7]. The solid structure can also evolve: mineral dissolution can change pore geometry and rock permeability [8–10]. Quantifying these processes requires accurate measurements of how fluid occupancy and pore geometry evolve over time. Time-resolved X-ray micro-tomography provides three-dimensional (3D) images of these evolving rock–fluid systems [6–8, 11, 12]. Each 3D image corresponds to a time step in the image sequence. Segmentations of successive images provide porosity, the fraction of a volume occupied by pores, and saturation, the fraction of pore space occupied by a given fluid. Segmented images enable measurements of pore structure and fluid occupancy and provide computational domains for flow and reactive trans- port simulations [13]. The accuracy of phase volumes and boundaries therefore matters both for measuring changes and for the physical calculations based on them [14]. Segmentation assigns each voxel, a 3D image element, to a material phase. Errors that vary between images can distort measurements of changes in pore space over time and obscure fluid displacement. Greyscale values can also vary between suc- cessive images even when the material remains unchanged, complicating consistent phase identification across the sequence [15]. Fluid motion during a CT scan can cause temporal blurring: projections acquired at different stages of displacement are combined in one reconstruction, producing intermediate greyscale values [16, 17]. When these intermediate greyscale values resemble those of rock, segmentation can misclassify a fluid-filled pore as rock. If the same pore is correctly identified in a later",
+        "token_count": 500,
+        "char_count": 2079,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.02919863597612958,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 9,
+      "bm25_score": 26.397020276848853,
+      "dense_rank": 8,
+      "dense_score": 0.6231476
+    },
+    {
+      "rank": 7,
+      "score": 29.11706964002193,
+      "chunk_id": "8c5302c4aea5f84a",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 8,
+      "text": "training image. The corresponding reference segmentation remained unchanged. Poros- ity error, fluid Dice and rock BF1 scores remained close to those of the original 3D model. Second, we trained a current-time-step-only 4D model that processed each image independently during training and inference. It retained the architecture and nominal parameter count of the full 4D model, but its accuracy remained close to that of the 3D model (Supplementary Table 1). Third, during inference, we repeated the current image multiple times to form the input sequence, keeping the trained 4D model’s weights unchanged. Mean rock BF1 scores fell from 0.941 to 0.808, and the porosity error increased. The largest performance drops occurred at the time steps where the 3D model had the lowest boundary accuracy (Fig. 4f). Together, these comparisons show that the 4D model estimates porosity and iden- tifies phase boundaries more accurately because it uses information from other images in the time sequence through temporal attention and fusion, rather than because of input corruption or a larger network alone. The 4D model also reduced pore-to-rock changes in its predictions during dis- solution. Predicting rock in a region previously identified as pore space can be mistaken for precipitation. Temporal majority voting across three consecutive time steps further reduced these changes but made fluid identification less accurate, whereas the 4D model improved both consistency and accuracy. These results show that fewer pore-to-rock changes in the predictions do not necessarily indicate a more accurate representation of pore-space evolution: temporal consistency needs to be assessed together with phase-identification accuracy (Supplementary Note 3 and Supplementary Table 2). Rock-geometry consistency during fluid displacement We then studied another dataset on Ketton limestone, where synchrotron X-ray imag- ing was used to observe drainage and imbibition without any dissolution [30]. The 4D model maintained the rock geometry more consistently as fluids moved through it. Training and evaluation setting",
+      "metadata": {
+        "chunk_id": "8c5302c4aea5f84a",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 8,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "training image. The corresponding reference segmentation remained unchanged. Poros- ity error, fluid Dice and rock BF1 scores remained close to those of the original 3D model. Second, we trained a current-time-step-only 4D model that processed each image independently during training and inference. It retained the architecture and nominal parameter count of the full 4D model, but its accuracy remained close to that of the 3D model (Supplementary Table 1). Third, during inference, we repeated the current image multiple times to form the input sequence, keeping the trained 4D model’s weights unchanged. Mean rock BF1 scores fell from 0.941 to 0.808, and the porosity error increased. The largest performance drops occurred at the time steps where the 3D model had the lowest boundary accuracy (Fig. 4f). Together, these comparisons show that the 4D model estimates porosity and iden- tifies phase boundaries more accurately because it uses information from other images in the time sequence through temporal attention and fusion, rather than because of input corruption or a larger network alone. The 4D model also reduced pore-to-rock changes in its predictions during dis- solution. Predicting rock in a region previously identified as pore space can be mistaken for precipitation. Temporal majority voting across three consecutive time steps further reduced these changes but made fluid identification less accurate, whereas the 4D model improved both consistency and accuracy. These results show that fewer pore-to-rock changes in the predictions do not necessarily indicate a more accurate representation of pore-space evolution: temporal consistency needs to be assessed together with phase-identification accuracy (Supplementary Note 3 and Supplementary Table 2). Rock-geometry consistency during fluid displacement We then studied another dataset on Ketton limestone, where synchrotron X-ray imag- ing was used to observe drainage and imbibition without any dissolution [30]. The 4D model maintained the rock geometry more consistently as fluids moved through it. Training and evaluation setting",
+        "token_count": 500,
+        "char_count": 2108,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.02900988017658188,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 7,
+      "bm25_score": 29.11706964002193,
+      "dense_rank": 11,
+      "dense_score": 0.591815
+    },
+    {
+      "rank": 11,
+      "score": 23.489773882447658,
+      "chunk_id": "aaccf40f666a4a44",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 3,
+      "text": "but processes each image independently. During carbonate dissolution, the 4D model identified rock boundaries more accurately and reduced mean absolute porosity error from 0.97 to 0.28 percentage points. The resulting segmentations also gave more accu- rate estimates of the increase in permeability. During drainage and imbibition, the 4D model reduced spurious changes in predicted rock between consecutive images by approximately one-third compared with the 3D model. In low-contrast laboratory CT images, the 4D model identified pores with intermediate greyscale values that the 3D model misclassified as rock, allowing more of the observed oil filling to be measured. Results A framework for time-resolved image segmentation The framework takes an aligned sequence of three-dimensional greyscale images and assigns each voxel to specified phases (Fig. 1). A shared spatial encoder describes local geometry, while temporal attention and decoder fusion combine information from other images in the time sequence. The spatial encoder and decoder follow the SwinUNETR design [28]; the 3D SwinUNETR model is referred to as the 3D model throughout. During training, reference segmentations supervise predictions at the labelled time steps within each input window. Other images in the same input window provide temporal information even without training labels. Overlapping spatial predictions are combined to cover the evaluation volume. Evaluation connects phase and boundary accuracy, consistency through time, and physical calculations from the segmented geometry. Together, these measurements assess both the predictions and their consequences for inferred rock properties. Measuring pore-space evolution during dissolution We tested whether the 4D model could measure pore-volume growth and identify rock boundaries more accurately than the 3D model. The experiment followed oil displacement by CO2-saturated brine as the carbonate dissolved [9]. Predictions were compared with reference segmentations at ten time steps (Fig. 2; Methods). The 4D model tracked pore-volume evolution more closely than the 3D model. Mean absolute porosity error decreased",
+      "metadata": {
+        "chunk_id": "aaccf40f666a4a44",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 3,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "but processes each image independently. During carbonate dissolution, the 4D model identified rock boundaries more accurately and reduced mean absolute porosity error from 0.97 to 0.28 percentage points. The resulting segmentations also gave more accu- rate estimates of the increase in permeability. During drainage and imbibition, the 4D model reduced spurious changes in predicted rock between consecutive images by approximately one-third compared with the 3D model. In low-contrast laboratory CT images, the 4D model identified pores with intermediate greyscale values that the 3D model misclassified as rock, allowing more of the observed oil filling to be measured. Results A framework for time-resolved image segmentation The framework takes an aligned sequence of three-dimensional greyscale images and assigns each voxel to specified phases (Fig. 1). A shared spatial encoder describes local geometry, while temporal attention and decoder fusion combine information from other images in the time sequence. The spatial encoder and decoder follow the SwinUNETR design [28]; the 3D SwinUNETR model is referred to as the 3D model throughout. During training, reference segmentations supervise predictions at the labelled time steps within each input window. Other images in the same input window provide temporal information even without training labels. Overlapping spatial predictions are combined to cover the evaluation volume. Evaluation connects phase and boundary accuracy, consistency through time, and physical calculations from the segmented geometry. Together, these measurements assess both the predictions and their consequences for inferred rock properties. Measuring pore-space evolution during dissolution We tested whether the 4D model could measure pore-volume growth and identify rock boundaries more accurately than the 3D model. The experiment followed oil displacement by CO2-saturated brine as the carbonate dissolved [9]. Predictions were compared with reference segmentations at ten time steps (Fig. 2; Methods). The 4D model tracked pore-volume evolution more closely than the 3D model. Mean absolute porosity error decreased",
+        "token_count": 500,
+        "char_count": 2157,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.027783137179239824,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 11,
+      "bm25_score": 23.489773882447658,
+      "dense_rank": 13,
+      "dense_score": 0.5837755
+    },
+    {
+      "rank": 10,
+      "score": 26.029559095742172,
+      "chunk_id": "ee02bfc4475a354a",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 5,
+      "text": "with 4D, nnU-Net had larger rock-boundary, porosity and oil-saturation errors (Sup- plementary Note 10 and Supplementary Table 11), as well as a larger error in the estimated permeability increase. Fig. 2: Measuring pore-space evolution during carbonate dissolution. a, Pore–rock surfaces at 300 min. Predicted surfaces are coloured by signed distance to the reference boundary: brown indicates locally smaller pores and green larger pores. b, A greyscale cross-section and segmentations of the boxed region. Purple marks disagreement between the predictions and the reference segmentation, including misclassification between oil and brine. c, Absolute porosity and oil-saturation errors, rock boundary F1 score, and fluid Dice score across all ten images with reference segmentations. At each time step, points show means and error bars show ±1 sample standard deviation across three training runs with different random seeds. Error bars smaller than their markers are not visible. 5",
+      "metadata": {
+        "chunk_id": "ee02bfc4475a354a",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 5,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "with 4D, nnU-Net had larger rock-boundary, porosity and oil-saturation errors (Sup- plementary Note 10 and Supplementary Table 11), as well as a larger error in the estimated permeability increase. Fig. 2: Measuring pore-space evolution during carbonate dissolution. a, Pore–rock surfaces at 300 min. Predicted surfaces are coloured by signed distance to the reference boundary: brown indicates locally smaller pores and green larger pores. b, A greyscale cross-section and segmentations of the boxed region. Purple marks disagreement between the predictions and the reference segmentation, including misclassification between oil and brine. c, Absolute porosity and oil-saturation errors, rock boundary F1 score, and fluid Dice score across all ten images with reference segmentations. At each time step, points show means and error bars show ±1 sample standard deviation across three training runs with different random seeds. Error bars smaller than their markers are not visible. 5",
+        "token_count": 242,
+        "char_count": 985,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.027272727272727275,
+      "retrieval_sources": [
+        "bm25",
+        "dense"
+      ],
+      "bm25_rank": 10,
+      "bm25_score": 26.029559095742172,
+      "dense_rank": 17,
+      "dense_score": 0.55925107
+    },
+    {
+      "rank": 6,
+      "score": 0.6313664,
+      "chunk_id": "496909365c7f7a5f",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 4,
+      "text": "Fig. 1: A framework for measuring evolving pore geometry and fluid occu- pancy. a, Subsurface processes motivate time-resolved imaging of rock samples. b, Spatial attention combines spatial information within each image; temporal attention combines information from other images in the time sequence. c, Training with labels at selected time steps. Input corruption and a process-specific consistency loss are optional settings. d, Segmented geometry provides porosity and saturation measure- ments and domains for flow and reactive-transport simulations. 4",
+      "metadata": {
+        "chunk_id": "496909365c7f7a5f",
+        "text_hash": "e85dc92bb2ca72cd2cc98ec6fbbb89788a41dd0decb8c2d23e45a99ff785f794",
+        "embedding_model": "BAAI/bge-m3",
+        "embedding_dimensions": 1024,
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 4,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "Fig. 1: A framework for measuring evolving pore geometry and fluid occu- pancy. a, Subsurface processes motivate time-resolved imaging of rock samples. b, Spatial attention combines spatial information within each image; temporal attention combines information from other images in the time sequence. c, Training with labels at selected time steps. Input corruption and a process-specific consistency loss are optional settings. d, Segmented geometry provides porosity and saturation measure- ments and domains for flow and reactive-transport simulations. 4",
+        "token_count": 139,
+        "char_count": 557,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.015151515151515152,
+      "retrieval_sources": [
+        "dense"
+      ],
+      "dense_rank": 6,
+      "dense_score": 0.6313664
+    },
+    {
+      "rank": 10,
+      "score": 0.5936903,
+      "chunk_id": "1208b8c545baec96",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 12,
+      "text": "the image preceding the brine-to-oil change. After voting, 91% of the volume in the rock-like pores was still incorrectly classified as rock (Supplementary Table 10). When both models were trained with one labelled time step, the 4D model achieved a brine Dice score of 0.713, compared with 0.639 for the 3D model (Fig. 5d). The 4D model also had lower oil-saturation error (Supplementary Tables 6 and 7). The 4D model retained higher brine and oil Dice scores than the 3D model when the input images were separated by 60, 180 or 300 s (Fig. 6c; Supplementary Note 6 and Supplementary Table 8). These results suggest potential for applying spatiotem- poral segmentation to faster laboratory CT imaging, helping identify fluid phases and quantify their displacement at higher temporal resolution. Transfer to other dissolution sequences We applied the models trained on the dissolution sequence described above (Seq1) without fine-tuning or target-based checkpoint selection to mixed-wet Seq2 and water-wet Seq3 from a second Ketton limestone sample [32]. This comparison assessed segmentation agreement using phase Dice and boundary F1 scores (Table 1; Supplementary Note 9). The 4D models retained a higher Dice score for each phase and higher boundary F1 scores for most phases in the new sequences. Oil boundary F1 score in Seq2 was slightly higher for 3D. The source-trained models therefore retained a temporal advantage in identifying rock and fluid regions across related dissolution experiments. Table 1: Segmentation transfer without fine-tuning. Seq1-trained 3D and 4D models were applied to different experiments Seq2 and Seq3 without target adaptation or target-based checkpoint selection. Scores cover the full spatial extent of the reference segmentations within valid sample support. Values are means ± sample standard deviations across three seeds, after averaging the two time steps with reference segmentations within each seed. Fluid scores equally weight oil and brine. Unlike the central time-step output used",
+      "metadata": {
+        "chunk_id": "1208b8c545baec96",
+        "text_hash": "80bff02f201183362331d04b0ded0d4ef0ed5b2380c92a865bfc8ffe2ad6f255",
+        "embedding_model": "BAAI/bge-m3",
+        "embedding_dimensions": 1024,
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 12,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "the image preceding the brine-to-oil change. After voting, 91% of the volume in the rock-like pores was still incorrectly classified as rock (Supplementary Table 10). When both models were trained with one labelled time step, the 4D model achieved a brine Dice score of 0.713, compared with 0.639 for the 3D model (Fig. 5d). The 4D model also had lower oil-saturation error (Supplementary Tables 6 and 7). The 4D model retained higher brine and oil Dice scores than the 3D model when the input images were separated by 60, 180 or 300 s (Fig. 6c; Supplementary Note 6 and Supplementary Table 8). These results suggest potential for applying spatiotem- poral segmentation to faster laboratory CT imaging, helping identify fluid phases and quantify their displacement at higher temporal resolution. Transfer to other dissolution sequences We applied the models trained on the dissolution sequence described above (Seq1) without fine-tuning or target-based checkpoint selection to mixed-wet Seq2 and water-wet Seq3 from a second Ketton limestone sample [32]. This comparison assessed segmentation agreement using phase Dice and boundary F1 scores (Table 1; Supplementary Note 9). The 4D models retained a higher Dice score for each phase and higher boundary F1 scores for most phases in the new sequences. Oil boundary F1 score in Seq2 was slightly higher for 3D. The source-trained models therefore retained a temporal advantage in identifying rock and fluid regions across related dissolution experiments. Table 1: Segmentation transfer without fine-tuning. Seq1-trained 3D and 4D models were applied to different experiments Seq2 and Seq3 without target adaptation or target-based checkpoint selection. Scores cover the full spatial extent of the reference segmentations within valid sample support. Values are means ± sample standard deviations across three seeds, after averaging the two time steps with reference segmentations within each seed. Fluid scores equally weight oil and brine. Unlike the central time-step output used",
+        "token_count": 500,
+        "char_count": 2030,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.014285714285714285,
+      "retrieval_sources": [
+        "dense"
+      ],
+      "dense_rank": 10,
+      "dense_score": 0.5936903
+    },
+    {
+      "rank": 12,
+      "score": 22.218706064559523,
+      "chunk_id": "799b71ba8e273adc",
+      "arxiv_id": "2611.17067v1",
+      "title": "An Invariant Neural-Network Eddy-Viscosity Closure with Iterative Solver Coupling for Molten Salt Fast Reactor Thermal-Hydraulics",
+      "page_number": 38,
+      "text": "[18] Y. Liu, N. Dinh, X. Sun, R. Hu, Uncertainty quantification for multiphase computational fluid dynamics closure relations with a physics-informed Bayesian approach, Nuclear Technology 209 (12) (2023) 2002–2015. [19] Z. Abulawi, R. Hu, P. Balaprakash, Y. Liu, Bayesian optimized deep ensemble for uncertainty quantification of deep neural networks: a system safety case study on sodium fast reactor thermal stratification modeling, Reliability Engineering & System Safety 264 (2025) 111353. doi:10.1016/j.ress.2025.111353. [20] X. Wu, L. E. Moloko, P. M. Bokov, G. K. Delipei, J. Kaizer, K. N. Ivanov, Uncertainty quantification for data-driven machine learning models in nuclear engineering applications: Where we are and what do we need?, Nuclear Science and Engineering 200 (8) (2025) 1798–1820. doi:10.1080/00295639.2025.2552500. [21] Z. Abulawi, D. Lim, A. Garimidi, Y. Liu, Bayesian-optimized, feature-augmented deep ensemble for physics-guided critical heat-flux prediction with uncertainty quantification, Annals of Nuclear Energy 230 (2026) 112139. [22] R. Hu, G. Hu, M. Gorman, J. Fang, T. Mui, D. O’Grady, T. Fei, R. Salko, SAM developments for MSR modeling (FY21), Tech. rep., Argonne National Laboratory (ANL), Argonne, IL (United States) (2021). [23] R. Hu, L. Zou, D. O’Grady, T. Mui, Z. J. Ooi, G. Hu, E. Cervi, G. Yang, D. Andrs, A. Lindsay, C. Permann, R. Salko, Q. Zhou, L. Fick, A. Heald, H. Zhao, SAM: A modern system code for advanced non",
+      "metadata": {
+        "chunk_id": "799b71ba8e273adc",
+        "arxiv_id": "2611.17067v1",
+        "title": "An Invariant Neural-Network Eddy-Viscosity Closure with Iterative Solver Coupling for Molten Salt Fast Reactor Thermal-Hydraulics",
+        "page_number": 38,
+        "total_pages": 42,
+        "chunk_index": 0,
+        "text": "[18] Y. Liu, N. Dinh, X. Sun, R. Hu, Uncertainty quantification for multiphase computational fluid dynamics closure relations with a physics-informed Bayesian approach, Nuclear Technology 209 (12) (2023) 2002–2015. [19] Z. Abulawi, R. Hu, P. Balaprakash, Y. Liu, Bayesian optimized deep ensemble for uncertainty quantification of deep neural networks: a system safety case study on sodium fast reactor thermal stratification modeling, Reliability Engineering & System Safety 264 (2025) 111353. doi:10.1016/j.ress.2025.111353. [20] X. Wu, L. E. Moloko, P. M. Bokov, G. K. Delipei, J. Kaizer, K. N. Ivanov, Uncertainty quantification for data-driven machine learning models in nuclear engineering applications: Where we are and what do we need?, Nuclear Science and Engineering 200 (8) (2025) 1798–1820. doi:10.1080/00295639.2025.2552500. [21] Z. Abulawi, D. Lim, A. Garimidi, Y. Liu, Bayesian-optimized, feature-augmented deep ensemble for physics-guided critical heat-flux prediction with uncertainty quantification, Annals of Nuclear Energy 230 (2026) 112139. [22] R. Hu, G. Hu, M. Gorman, J. Fang, T. Mui, D. O’Grady, T. Fei, R. Salko, SAM developments for MSR modeling (FY21), Tech. rep., Argonne National Laboratory (ANL), Argonne, IL (United States) (2021). [23] R. Hu, L. Zou, D. O’Grady, T. Mui, Z. J. Ooi, G. Hu, E. Cervi, G. Yang, D. Andrs, A. Lindsay, C. Permann, R. Salko, Q. Zhou, L. Fick, A. Heald, H. Zhao, SAM: A modern system code for advanced non",
+        "token_count": 500,
+        "char_count": 1463,
+        "pdf_path": "data\\raw\\2611.17067v1.pdf"
+      },
+      "rrf_score": 0.013888888888888888,
+      "retrieval_sources": [
+        "bm25"
+      ],
+      "bm25_rank": 12,
+      "bm25_score": 22.218706064559523
+    },
+    {
+      "rank": 12,
+      "score": 0.5882272,
+      "chunk_id": "fab92126ee619db8",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 6,
+      "text": "at each time step are reported in Supplementary Table 13. We tested two types of random perturbation at the reference pore boundaries: one changed porosity, and the other preserved it. In the first, we converted rock voxels to pore or pore voxels to rock, increasing or decreasing pore volume by 1, 3 or 5%. In the second, we converted 3% of the original pore voxels to rock and the same number of rock voxels to pore, leaving porosity unchanged. Despite the unchanged porosity, permeability decreased by 17–21% and the mineral dissolution rate increased by 27–36% across the three time steps (Fig. 3a,b; Supplementary Methods). These perturbations show that permeability and mineral dissolution rate depend on pore- boundary geometry as well as pore volume, and that the same boundary changes can affect the two properties in opposite directions. A segmented image used for flow and reactive-transport simulations should therefore be evaluated by the permeability and dissolution rate calculated from it, not by its phase volumes alone. Contribution of information from other images We performed three comparisons to test whether the 4D model’s performance gain was from the incorporation of spatial and temporal information from other images in the time sequence (Fig. 4). PoreTimeNet achieved its largest gains in boundary accuracy in the four images where the 3D model performed poorly, increasing mean rock BF1 score from 0.690 to 0.923 (Fig. 4f). First, we tested whether input corruption, an additional form of training data aug- mentation, could produce similar improvements in the 3D model. During training, we added noise, masked image regions or randomly varied the greyscale values of a selected 6",
+      "metadata": {
+        "chunk_id": "fab92126ee619db8",
+        "text_hash": "a9c96a6046e6459ab212ec3fc31e5d6e837fdf1822ef4246c7e24d26ea03dabd",
+        "embedding_model": "BAAI/bge-m3",
+        "embedding_dimensions": 1024,
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 6,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "at each time step are reported in Supplementary Table 13. We tested two types of random perturbation at the reference pore boundaries: one changed porosity, and the other preserved it. In the first, we converted rock voxels to pore or pore voxels to rock, increasing or decreasing pore volume by 1, 3 or 5%. In the second, we converted 3% of the original pore voxels to rock and the same number of rock voxels to pore, leaving porosity unchanged. Despite the unchanged porosity, permeability decreased by 17–21% and the mineral dissolution rate increased by 27–36% across the three time steps (Fig. 3a,b; Supplementary Methods). These perturbations show that permeability and mineral dissolution rate depend on pore- boundary geometry as well as pore volume, and that the same boundary changes can affect the two properties in opposite directions. A segmented image used for flow and reactive-transport simulations should therefore be evaluated by the permeability and dissolution rate calculated from it, not by its phase volumes alone. Contribution of information from other images We performed three comparisons to test whether the 4D model’s performance gain was from the incorporation of spatial and temporal information from other images in the time sequence (Fig. 4). PoreTimeNet achieved its largest gains in boundary accuracy in the four images where the 3D model performed poorly, increasing mean rock BF1 score from 0.690 to 0.923 (Fig. 4f). First, we tested whether input corruption, an additional form of training data aug- mentation, could produce similar improvements in the 3D model. During training, we added noise, masked image regions or randomly varied the greyscale values of a selected 6",
+        "token_count": 423,
+        "char_count": 1709,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.013888888888888888,
+      "retrieval_sources": [
+        "dense"
+      ],
+      "dense_rank": 12,
+      "dense_score": 0.5882272
+    },
+    {
+      "rank": 13,
+      "score": 21.92101644846131,
+      "chunk_id": "c9ac6d98a6e6c6e3",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 10,
+      "text": "We also compared changes between predicted oil and brine volumes. Adding the volumes that changed from brine to oil and from oil to brine gave the total change; subtracting the latter from the former gave the net change. In both processes, the total was lower for 4D, while the net change remained close to the 3D estimates (Fig. 6b). The final test was a fast laboratory CT displacement sequence in Luxembourg sandstone [31] in which brine and rock were difficult to distinguish; models were trained with annotations from one time step. The 4D predictions also maintained the fixed rock geometry more consistently. For pairs of time steps with the later one at 5–69 min, changes in predicted rock decreased from 3.28% of valid voxels for 3D to 0.81% for 4D. Changes in porosity between time steps were also smaller (Fig. 5b,c). Measuring changes in fluid occupancy Shorter scans can increase image noise, making reliable phase identification a challenge for faster laboratory CT imaging [16]. We used the Luxembourg sandstone sequence to examine whether temporal information could improve measurements of the locations and volumes of oil filling. The 4D model estimated oil-filling volume more accurately. We measured oil filling as the volume of pore space that changed from brine to oil over each selected time interval (Fig. 6a). The total oil-filling volume across these intervals was 1.94 mm3 in the reference segmentations, compared with 1.09 mm3 for the 3D predictions and 1.66 mm3 for the 4D predictions (Fig. 6a; Supplementary Table 9). Most filling missed by 3D (about 72%) occurred where the earlier prediction was rock and the later prediction was oil. Such a change is not counted as brine-to-oil filling. A local pore illustrates how this error arose (Fig. 6d). During the scan for the 35-min time step, the filling pore resembled rock in the greyscale image. Fluid dis- placement during a CT scan can produce intermediate greyscale values because the reconstruction combines projections acquired at different",
+      "metadata": {
+        "chunk_id": "c9ac6d98a6e6c6e3",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 10,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "We also compared changes between predicted oil and brine volumes. Adding the volumes that changed from brine to oil and from oil to brine gave the total change; subtracting the latter from the former gave the net change. In both processes, the total was lower for 4D, while the net change remained close to the 3D estimates (Fig. 6b). The final test was a fast laboratory CT displacement sequence in Luxembourg sandstone [31] in which brine and rock were difficult to distinguish; models were trained with annotations from one time step. The 4D predictions also maintained the fixed rock geometry more consistently. For pairs of time steps with the later one at 5–69 min, changes in predicted rock decreased from 3.28% of valid voxels for 3D to 0.81% for 4D. Changes in porosity between time steps were also smaller (Fig. 5b,c). Measuring changes in fluid occupancy Shorter scans can increase image noise, making reliable phase identification a challenge for faster laboratory CT imaging [16]. We used the Luxembourg sandstone sequence to examine whether temporal information could improve measurements of the locations and volumes of oil filling. The 4D model estimated oil-filling volume more accurately. We measured oil filling as the volume of pore space that changed from brine to oil over each selected time interval (Fig. 6a). The total oil-filling volume across these intervals was 1.94 mm3 in the reference segmentations, compared with 1.09 mm3 for the 3D predictions and 1.66 mm3 for the 4D predictions (Fig. 6a; Supplementary Table 9). Most filling missed by 3D (about 72%) occurred where the earlier prediction was rock and the later prediction was oil. Such a change is not counted as brine-to-oil filling. A local pore illustrates how this error arose (Fig. 6d). During the scan for the 35-min time step, the filling pore resembled rock in the greyscale image. Fluid dis- placement during a CT scan can produce intermediate greyscale values because the reconstruction combines projections acquired at different",
+        "token_count": 500,
+        "char_count": 2024,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.0136986301369863,
+      "retrieval_sources": [
+        "bm25"
+      ],
+      "bm25_rank": 13,
+      "bm25_score": 21.92101644846131
+    },
+    {
+      "rank": 14,
+      "score": 0.58236784,
+      "chunk_id": "2a7c114c6f974362",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 3,
+      "text": "D model. The experiment followed oil displacement by CO2-saturated brine as the carbonate dissolved [9]. Predictions were compared with reference segmentations at ten time steps (Fig. 2; Methods). The 4D model tracked pore-volume evolution more closely than the 3D model. Mean absolute porosity error decreased from 0.97 to 0.28 percentage points. The error in predicted oil-saturation also decreased. Better pore-volume measurement accompanied more accurate rock boundaries. The mean rock boundary F1 (BF1) score increased from 0.833 to 0.941. Segmentation scores are given in Supplementary Table 1. At brine–rock boundaries, where the two phases have similar greyscale values and are difficult to distinguish, PoreTimeNet learned features that distinguished the two phases more clearly than the 3D model did (Supplementary Fig. 1 and Supplementary Note 2). The surface and slice views show how these errors affect the reconstructed pore boundary (Fig. 2a,b; Supplementary Note 1). As an independent baseline, we used nnU-Net [29], a self-configuring 3D network trained with its own configuration and training procedure on the same training region and ten labelled time steps. Compared 3",
+      "metadata": {
+        "chunk_id": "2a7c114c6f974362",
+        "text_hash": "c47bb16c0fe2bc1bd50b6efa1c00e606492d80cd7935aeb28ed65e01e4facf4c",
+        "embedding_model": "BAAI/bge-m3",
+        "embedding_dimensions": 1024,
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 3,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "D model. The experiment followed oil displacement by CO2-saturated brine as the carbonate dissolved [9]. Predictions were compared with reference segmentations at ten time steps (Fig. 2; Methods). The 4D model tracked pore-volume evolution more closely than the 3D model. Mean absolute porosity error decreased from 0.97 to 0.28 percentage points. The error in predicted oil-saturation also decreased. Better pore-volume measurement accompanied more accurate rock boundaries. The mean rock boundary F1 (BF1) score increased from 0.833 to 0.941. Segmentation scores are given in Supplementary Table 1. At brine–rock boundaries, where the two phases have similar greyscale values and are difficult to distinguish, PoreTimeNet learned features that distinguished the two phases more clearly than the 3D model did (Supplementary Fig. 1 and Supplementary Note 2). The surface and slice views show how these errors affect the reconstructed pore boundary (Fig. 2a,b; Supplementary Note 1). As an independent baseline, we used nnU-Net [29], a self-configuring 3D network trained with its own configuration and training procedure on the same training region and ten labelled time steps. Compared 3",
+        "token_count": 300,
+        "char_count": 1188,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.013513513513513514,
+      "retrieval_sources": [
+        "dense"
+      ],
+      "dense_rank": 14,
+      "dense_score": 0.58236784
+    },
+    {
+      "rank": 14,
+      "score": 21.861729081499803,
+      "chunk_id": "aae9041c70ae820a",
+      "arxiv_id": "2611.17067v1",
+      "title": "An Invariant Neural-Network Eddy-Viscosity Closure with Iterative Solver Coupling for Molten Salt Fast Reactor Thermal-Hydraulics",
+      "page_number": 37,
+      "text": ".1016/j.nucengdes.2021. 111143. [12] J. Fang, M. Tano, N. Saini, A. Tomboulides, V. Coppo-Leite, E. Merzari, B. Feng, D. Shaver, CFD simulations of Molten Salt Fast Reactor core cavity flows, Nuclear Engineering and Design 424 (2024) 113294. [13] Z. Yang, Large-eddy simulation: Past, present and the future, Chinese Journal of Aeronautics 28 (1) (2015) 11–24. [14] G. Alfonsi, On direct numerical simulation of turbulent flows, Applied Mechanics Reviews 64 (2) (2011) 020802. [15] A. Tomboulides, N. Saini, D. R. Shaver, A. V. Obabko, H. Yuan, E. Merzari, P. F. Fischer, A robust spectral element implementation of the k–τ RANS model in Nek5000/NekRS, International Journal of Heat and Fluid Flow 112 (2025) 109679. doi:10.1016/j. ijheatfluidflow.2024.109679. [16] Y. Liu, N. T. Dinh, R. C. Smith, X. Sun, Uncertainty quantification of two-phase flow and boiling heat transfer simulations through a data-driven modular Bayesian approach, International Journal of Heat and Mass Transfer 138 (2019) 1096–1116. [17] Y. Liu, D. Wang, X. Sun, N. Dinh, R. Hu, Uncertainty quantification for Multiphase-CFD simulations of bubbly flows: a machine learning-based Bayesian approach supported by high-resolution experiments, Reliability Engineering & System Safety 212 (2021) 107636. 37",
+      "metadata": {
+        "chunk_id": "aae9041c70ae820a",
+        "arxiv_id": "2611.17067v1",
+        "title": "An Invariant Neural-Network Eddy-Viscosity Closure with Iterative Solver Coupling for Molten Salt Fast Reactor Thermal-Hydraulics",
+        "page_number": 37,
+        "total_pages": 42,
+        "chunk_index": 1,
+        "text": ".1016/j.nucengdes.2021. 111143. [12] J. Fang, M. Tano, N. Saini, A. Tomboulides, V. Coppo-Leite, E. Merzari, B. Feng, D. Shaver, CFD simulations of Molten Salt Fast Reactor core cavity flows, Nuclear Engineering and Design 424 (2024) 113294. [13] Z. Yang, Large-eddy simulation: Past, present and the future, Chinese Journal of Aeronautics 28 (1) (2015) 11–24. [14] G. Alfonsi, On direct numerical simulation of turbulent flows, Applied Mechanics Reviews 64 (2) (2011) 020802. [15] A. Tomboulides, N. Saini, D. R. Shaver, A. V. Obabko, H. Yuan, E. Merzari, P. F. Fischer, A robust spectral element implementation of the k–τ RANS model in Nek5000/NekRS, International Journal of Heat and Fluid Flow 112 (2025) 109679. doi:10.1016/j. ijheatfluidflow.2024.109679. [16] Y. Liu, N. T. Dinh, R. C. Smith, X. Sun, Uncertainty quantification of two-phase flow and boiling heat transfer simulations through a data-driven modular Bayesian approach, International Journal of Heat and Mass Transfer 138 (2019) 1096–1116. [17] Y. Liu, D. Wang, X. Sun, N. Dinh, R. Hu, Uncertainty quantification for Multiphase-CFD simulations of bubbly flows: a machine learning-based Bayesian approach supported by high-resolution experiments, Reliability Engineering & System Safety 212 (2021) 107636. 37",
+        "token_count": 411,
+        "char_count": 1276,
+        "pdf_path": "data\\raw\\2611.17067v1.pdf"
+      },
+      "rrf_score": 0.013513513513513514,
+      "retrieval_sources": [
+        "bm25"
+      ],
+      "bm25_rank": 14,
+      "bm25_score": 21.861729081499803
+    },
+    {
+      "rank": 15,
+      "score": 21.241303299629262,
+      "chunk_id": "4a400d0eea8ce479",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 19,
+      "text": "step, only the 37-min reference seg- mentation supervised training. The 3D model learned from that image, while the 4D model also used other images in the input window without training labels. The 3D and 4D models used AdamW with a weight decay of 10−5. Models for the displacement datasets were trained for 300 epochs, with a peak learning rate of 1.4142 × 10−5, a linear increase during 30 warm-up epochs and then cosine decay to 10−6. Dissolution models were trained for 250 epochs, with a peak learning rate of 2 × 10−5, 50 warm-up epochs and cosine decay to 10−6 over the remaining 200 epochs. Each GPU processed one window per batch on two GPUs; model parameters were updated after each batch without gradient accumulation. Luxembourg sandstone training used 115 batches per epoch. For the 3D and 4D models, we evaluated fluid Dice scores in the validation region every ten epochs and retained the saved model, or checkpoint, with the highest score. Dice and cross-entropy losses had equal weights, with cross-entropy label smoothing α of 0.05. Rock, oil and brine class weights were (1, 1, 1) for limestone and sandstone displacement experiments and (0.8, 1.8, 1.0) for dissolution. For all datasets, training patches were sampled using class-balanced spatial crops. Data augmentation included axis flips, affine transformations and Gaussian smooth- ing. The same spatial transformation was applied to all images in a window. Temporal intensity drift, which varied greyscale values across the window, was applied with 19",
+      "metadata": {
+        "chunk_id": "4a400d0eea8ce479",
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 19,
+        "total_pages": 48,
+        "chunk_index": 1,
+        "text": "step, only the 37-min reference seg- mentation supervised training. The 3D model learned from that image, while the 4D model also used other images in the input window without training labels. The 3D and 4D models used AdamW with a weight decay of 10−5. Models for the displacement datasets were trained for 300 epochs, with a peak learning rate of 1.4142 × 10−5, a linear increase during 30 warm-up epochs and then cosine decay to 10−6. Dissolution models were trained for 250 epochs, with a peak learning rate of 2 × 10−5, 50 warm-up epochs and cosine decay to 10−6 over the remaining 200 epochs. Each GPU processed one window per batch on two GPUs; model parameters were updated after each batch without gradient accumulation. Luxembourg sandstone training used 115 batches per epoch. For the 3D and 4D models, we evaluated fluid Dice scores in the validation region every ten epochs and retained the saved model, or checkpoint, with the highest score. Dice and cross-entropy losses had equal weights, with cross-entropy label smoothing α of 0.05. Rock, oil and brine class weights were (1, 1, 1) for limestone and sandstone displacement experiments and (0.8, 1.8, 1.0) for dissolution. For all datasets, training patches were sampled using class-balanced spatial crops. Data augmentation included axis flips, affine transformations and Gaussian smooth- ing. The same spatial transformation was applied to all images in a window. Temporal intensity drift, which varied greyscale values across the window, was applied with 19",
+        "token_count": 410,
+        "char_count": 1527,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.013333333333333334,
+      "retrieval_sources": [
+        "bm25"
+      ],
+      "bm25_rank": 15,
+      "bm25_score": 21.241303299629262
+    },
+    {
+      "rank": 15,
+      "score": 0.56380314,
+      "chunk_id": "544d574baca93d98",
+      "arxiv_id": "2611.17111v1",
+      "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+      "page_number": 26,
+      "text": "[18] Van Offenwert, S., Cnudde, V., Bultreys, T.: Pore-scale visualization and quan- tification of transient solute transport using fast microcomputed tomography. Water Resources Research 55(11), 9279–9291 (2019) https://doi.org/10.1029/ 2019WR025880 [19] Tekseth, K.R., Breiby, D.W.: 4D imaging of two-phase flow in porous media using laboratory-based micro-computed tomography. Water Resources Research 60(4), e2023WR036514 (2024) https://doi.org/10.1029/2023WR036514 [20] Iassonov, P., Gebrenegus, T., Tuller, M.: Segmentation of X-ray computed tomography images of porous materials: A crucial step for characterization and quantitative analysis of pore structures. Water Resources Research 45(9), W09415 (2009) https://doi.org/10.1029/2009WR008087 [21] Schl ̈uter, S., Sheppard, A., Brown, K., Wildenschild, D.: Image processing of mul- tiphase images obtained via X-ray microtomography: A review. Water Resources Research 50(4), 3615–3639 (2014) https://doi.org/10.1002/2014WR015256 [22] Tang, K., Armstrong, R.T., Mostaghimi, P., Niu, Y., Meyer, Q., Zhao, C., Fine- gan, D.P., Popeil, M., Singh, K., Menke, H., Dimou, A.P., Bultreys, T., Mascini, A., Knackstedt, M., Da Wang, Y.: Scaling deep learning for material imaging with a pseudo 3D model for domain transfer. Nature Communications 16, 11293 (2025) https://doi.org/10.1038/s41467-025-66449-6 [23] Ye, S., Song, X., Ma, Z., Gao, Y., Zhu, L., Zhou, M",
+      "metadata": {
+        "chunk_id": "544d574baca93d98",
+        "text_hash": "3ef0f4be72a171d89cafab15c64b36bf09670f46e6c01aeb2db991e676ed2a2e",
+        "embedding_model": "BAAI/bge-m3",
+        "embedding_dimensions": 1024,
+        "arxiv_id": "2611.17111v1",
+        "title": "Spatiotemporal learning improves quantification of pore-space evolution and fluid displacement",
+        "page_number": 26,
+        "total_pages": 48,
+        "chunk_index": 0,
+        "text": "[18] Van Offenwert, S., Cnudde, V., Bultreys, T.: Pore-scale visualization and quan- tification of transient solute transport using fast microcomputed tomography. Water Resources Research 55(11), 9279–9291 (2019) https://doi.org/10.1029/ 2019WR025880 [19] Tekseth, K.R., Breiby, D.W.: 4D imaging of two-phase flow in porous media using laboratory-based micro-computed tomography. Water Resources Research 60(4), e2023WR036514 (2024) https://doi.org/10.1029/2023WR036514 [20] Iassonov, P., Gebrenegus, T., Tuller, M.: Segmentation of X-ray computed tomography images of porous materials: A crucial step for characterization and quantitative analysis of pore structures. Water Resources Research 45(9), W09415 (2009) https://doi.org/10.1029/2009WR008087 [21] Schl ̈uter, S., Sheppard, A., Brown, K., Wildenschild, D.: Image processing of mul- tiphase images obtained via X-ray microtomography: A review. Water Resources Research 50(4), 3615–3639 (2014) https://doi.org/10.1002/2014WR015256 [22] Tang, K., Armstrong, R.T., Mostaghimi, P., Niu, Y., Meyer, Q., Zhao, C., Fine- gan, D.P., Popeil, M., Singh, K., Menke, H., Dimou, A.P., Bultreys, T., Mascini, A., Knackstedt, M., Da Wang, Y.: Scaling deep learning for material imaging with a pseudo 3D model for domain transfer. Nature Communications 16, 11293 (2025) https://doi.org/10.1038/s41467-025-66449-6 [23] Ye, S., Song, X., Ma, Z., Gao, Y., Zhu, L., Zhou, M",
+        "token_count": 500,
+        "char_count": 1411,
+        "pdf_path": "data\\raw\\2611.17111v1.pdf"
+      },
+      "rrf_score": 0.013333333333333334,
+      "retrieval_sources": [
+        "dense"
+      ],
+      "dense_rank": 15,
+      "dense_score": 0.56380314
+    }
+  ],
+  "ranking": [
+    {
+      "chunk_id": "fd0943e5a3beddc9",
+      "rrf_rank": 2,
+      "reranker_score": 0.9997020363807678
+    },
+    {
+      "chunk_id": "27d3a494b86120e3",
+      "rrf_rank": 6,
+      "reranker_score": 0.9848923683166504
+    },
+    {
+      "chunk_id": "b3599a57240fb3ab",
+      "rrf_rank": 3,
+      "reranker_score": 0.9822262525558472
+    },
+    {
+      "chunk_id": "da04edabdf674992",
+      "rrf_rank": 1,
+      "reranker_score": 0.9766290783882141
+    },
+    {
+      "chunk_id": "6142f3e43ffeb522",
+      "rrf_rank": 4,
+      "reranker_score": 0.9624792337417603
+    },
+    {
+      "chunk_id": "f9ad67440755c7ec",
+      "rrf_rank": 5,
+      "reranker_score": 0.9087262153625488
+    },
+    {
+      "chunk_id": "b002a0fddf9b851c",
+      "rrf_rank": 9,
+      "reranker_score": 0.7242528796195984
+    },
+    {
+      "chunk_id": "4be65496242930b9",
+      "rrf_rank": 8,
+      "reranker_score": 0.6154610514640808
+    },
+    {
+      "chunk_id": "8c5302c4aea5f84a",
+      "rrf_rank": 7,
+      "reranker_score": 0.5895823836326599
+    },
+    {
+      "chunk_id": "1208b8c545baec96",
+      "rrf_rank": 10,
+      "reranker_score": 0.5833708643913269
+    },
+    {
+      "chunk_id": "c9ac6d98a6e6c6e3",
+      "rrf_rank": 13,
+      "reranker_score": 0.5585865378379822
+    },
+    {
+      "chunk_id": "aaccf40f666a4a44",
+      "rrf_rank": 11,
+      "reranker_score": 0.5288389921188354
+    },
+    {
+      "chunk_id": "4a400d0eea8ce479",
+      "rrf_rank": 15,
+      "reranker_score": 0.30745765566825867
+    },
+    {
+      "chunk_id": "fab92126ee619db8",
+      "rrf_rank": 12,
+      "reranker_score": 0.14803041517734528
+    },
+    {
+      "chunk_id": "2a7c114c6f974362",
+      "rrf_rank": 14,
+      "reranker_score": 0.1267371028661728
+    },
+    {
+      "chunk_id": "496909365c7f7a5f",
+      "rrf_rank": 6,
+      "reranker_score": 0.125019833445549
+    },
+    {
+      "chunk_id": "ee02bfc4475a354a",
+      "rrf_rank": 10,
+      "reranker_score": 0.07369669526815414
+    },
+    {
+      "chunk_id": "799b71ba8e273adc",
+      "rrf_rank": 12,
+      "reranker_score": 0.022782467305660248
+    },
+    {
+      "chunk_id": "544d574baca93d98",
+      "rrf_rank": 15,
+      "reranker_score": 0.019161397591233253
+    },
+    {
+      "chunk_id": "aae9041c70ae820a",
+      "rrf_rank": 14,
+      "reranker_score": 0.011459026485681534
+    }
+  ]
+}

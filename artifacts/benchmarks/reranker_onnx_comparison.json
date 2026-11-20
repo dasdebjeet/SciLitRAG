@@ -1,0 +1,105 @@
+{
+  "model": "BAAI/bge-reranker-v2-m3",
+  "candidate_count": 20,
+  "batch_size": 8,
+  "max_length": 1024,
+  "thread_configuration": {
+    "intra_op": 8,
+    "inter_op": 4
+  },
+  "quantization": {
+    "method": "dynamic",
+    "weight_type": "QInt8",
+    "per_channel": true,
+    "operators": [
+      "MatMul",
+      "Gemm"
+    ]
+  },
+  "artifacts": {
+    "fp32_model": "artifacts/models/bge-reranker-v2-m3-fp32.onnx",
+    "int8_model": "artifacts/models/bge-reranker-v2-m3-int8.onnx",
+    "fp32_size_mib": 1.45,
+    "int8_size_mib": 1300.92
+  },
+  "pytorch_baseline": {
+    "median_seconds": 10.704
+  },
+  "fp32_onnx": {
+    "timing": {
+      "durations_seconds": [
+        14.58729089999997,
+        14.542668936000155,
+        14.419171735999953,
+        14.657310845999746,
+        14.62845402200037
+      ],
+      "median_seconds": 14.58729089999997,
+      "mean_seconds": 14.566979288000038,
+      "min_seconds": 14.419171735999953,
+      "max_seconds": 14.657310845999746
+    },
+    "quality": {
+      "max_absolute_score_error": 1.5497207641601562e-06,
+      "mean_absolute_score_error": 3.5450793234304e-07,
+      "top5_exact_match": true,
+      "top5_overlap_count": 5,
+      "full_ranking_exact_match": true,
+      "reference_top5": [
+        "fd0943e5a3beddc9",
+        "27d3a494b86120e3",
+        "b3599a57240fb3ab",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ],
+      "current_top5": [
+        "fd0943e5a3beddc9",
+        "27d3a494b86120e3",
+        "b3599a57240fb3ab",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ]
+    }
+  },
+  "int8_onnx": {
+    "timing": {
+      "durations_seconds": [
+        9.29003800100054,
+        9.281038914000419,
+        9.265598612999383,
+        9.198364708000554,
+        9.212041965000026
+      ],
+      "median_seconds": 9.265598612999383,
+      "mean_seconds": 9.249416440200184,
+      "min_seconds": 9.198364708000554,
+      "max_seconds": 9.29003800100054
+    },
+    "quality": {
+      "max_absolute_score_error": 0.14585521817207336,
+      "mean_absolute_score_error": 0.021831262856721878,
+      "top5_exact_match": false,
+      "top5_overlap_count": 5,
+      "full_ranking_exact_match": false,
+      "reference_top5": [
+        "fd0943e5a3beddc9",
+        "27d3a494b86120e3",
+        "b3599a57240fb3ab",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ],
+      "current_top5": [
+        "fd0943e5a3beddc9",
+        "b3599a57240fb3ab",
+        "27d3a494b86120e3",
+        "da04edabdf674992",
+        "6142f3e43ffeb522"
+      ]
+    }
+  },
+  "speedup": {
+    "int8_vs_fp32": 1.5743495384674226,
+    "int8_vs_pytorch_baseline": 1.1552410639699608,
+    "fp32_vs_pytorch_baseline": 0.7337894385858873
+  }
+}
