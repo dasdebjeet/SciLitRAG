@@ -11,7 +11,13 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class ConversationMessage(BaseModel):
@@ -73,6 +79,17 @@ class AskRequest(BaseModel):
         examples=["2611.171"],
     )
 
+    arxiv_ids: list[str] | None = Field(
+        default=None,
+        min_length=2,
+        max_length=3,
+        description=(
+            "Optional two or three paper IDs used as the retrieval scope "
+            "for a multi-paper comparison conversation."
+        ),
+        examples=[["2611.17101v1", "2611.16871v1"]],
+    )
+
     history: list[ConversationMessage] = Field(
         default_factory=list,
         max_length=12,
@@ -95,7 +112,7 @@ class AskRequest(BaseModel):
     @field_validator("arxiv_id")
     @classmethod
     def validate_arxiv_id(cls, value: str | None) -> str | None:
-        """Normalize an optional arXiv identifier."""
+        """Normalize an optional single-paper arXiv identifier."""
 
         if value is None:
             return None
@@ -106,3 +123,67 @@ class AskRequest(BaseModel):
             return None
 
         return value
+
+    @field_validator("arxiv_ids")
+    @classmethod
+    def validate_arxiv_ids(
+        cls,
+        value: list[str] | None,
+    ) -> list[str] | None:
+        """Normalize paper identifiers and reject empty or duplicate IDs."""
+
+        if value is None:
+            return None
+
+        normalized = [arxiv_id.strip() for arxiv_id in value]
+
+        if any(not arxiv_id for arxiv_id in normalized):
+            raise ValueError("arXiv IDs cannot be empty.")
+
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("Duplicate arXiv IDs are not allowed.")
+
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_retrieval_scope(self) -> AskRequest:
+        """Prevent ambiguous requests containing both single- and multi-paper scopes."""
+
+        if self.arxiv_id is not None and self.arxiv_ids is not None:
+            raise ValueError(
+                "Specify either arxiv_id or arxiv_ids, not both."
+            )
+
+        return self
+
+
+class CompareRequest(BaseModel):
+    """Validate a request to compare two or three research papers."""
+
+    model_config = ConfigDict(
+        extra="forbid",
+        str_strip_whitespace=True,
+    )
+
+    arxiv_ids: list[str] = Field(
+        ...,
+        min_length=2,
+        max_length=3,
+        description="Two or three distinct arXiv IDs to compare.",
+        examples=[["2611.17101v1", "2611.16871v1"]],
+    )
+
+    @field_validator("arxiv_ids")
+    @classmethod
+    def validate_arxiv_ids(cls, value: list[str]) -> list[str]:
+        """Normalize identifiers and reject empty or duplicate selections."""
+
+        normalized = [arxiv_id.strip() for arxiv_id in value]
+
+        if any(not arxiv_id for arxiv_id in normalized):
+            raise ValueError("arXiv IDs cannot be empty.")
+
+        if len(set(normalized)) != len(normalized):
+            raise ValueError("Duplicate arXiv IDs are not allowed.")
+
+        return normalized

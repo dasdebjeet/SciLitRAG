@@ -30,9 +30,10 @@ import { useConversations } from "./hooks/useConversations";
 import type {
   AssistantMessage,
   UserMessage,
+  ConversationPaper,
 } from "./types/conversation";
 
-import { askQuestion } from "./services/api";
+import { askQuestion, comparePapers } from "./services/api";
 import type { Citation, Paper } from "./types/api";
 
 import "./App.css";
@@ -107,7 +108,6 @@ function formatAnswerCitations(
 function generateMessageId(): string {
   return crypto.randomUUID();
 }
-
 
 /**
  * Render one assistant response together with its own research sources.
@@ -282,6 +282,7 @@ function App() {
     activeConversation,
     storageError,
     createConversation,
+    createComparisonConversation,
     selectConversation,
     addMessage,
     renameConversation,
@@ -295,6 +296,12 @@ function App() {
 
   // Holds the paper scope for a new, unsaved chat draft.
   const [draftPaper, setDraftPaper] = useState<Paper | null>(null);
+
+  // Stores only the paper metadata required by the comparison composer.
+  // Full Paper objects are not needed after the initial selection.
+  const [comparisonPapers, setComparisonPapers] = useState<
+    Array<Pick<Paper, "arxiv_id" | "title">>
+  >([]);
 
   // References the editable prompt, sticky composer, and message transcript.
   const questionEditorRef = useRef<HTMLDivElement>(null);
@@ -312,19 +319,31 @@ function App() {
   const [error, setError] = useState("");
 
   /**
-   * Restore paper scope from a saved conversation or the current unsaved draft.
+   * Restore the legacy single-paper scope for ordinary conversations.
    *
-   * An active saved conversation takes priority. Otherwise, the paper
-   * selected for the unsaved draft is used until its first message is sent.
+   * Comparison conversations use their complete papers snapshot instead
+   * and must not be mistaken for single-paper conversations.
    */
   const selectedPaper = activeConversation
-    ? activeConversation.arxivId
-      ? {
-          arxiv_id: activeConversation.arxivId,
-          title: activeConversation.paperTitle ?? "Selected paper",
-        }
-      : null
+    ? activeConversation.papers?.length
+      ? null
+      : activeConversation.arxivId
+        ? {
+            arxiv_id: activeConversation.arxivId,
+            title: activeConversation.paperTitle ?? "Selected paper",
+          }
+        : null
     : draftPaper;
+
+  // The composer can display either one research paper or a multi-paper scope.
+  const scopePapers: Array<Pick<Paper, "arxiv_id" | "title">> =
+    comparisonPapers.length > 0
+      ? comparisonPapers
+      : selectedPaper
+        ? [selectedPaper]
+        : [];
+
+  const isComparisonScope = comparisonPapers.length > 0;
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
@@ -432,6 +451,7 @@ function App() {
     activeConversation?.messages.length,
     isLoading,
     selectedPaper?.arxiv_id,
+    comparisonPapers.length,
   ]);
 
   /**
@@ -472,6 +492,7 @@ function App() {
   function handleNewChat() {
     selectConversation(null);
     setDraftPaper(null);
+    setComparisonPapers([]);
     setQuestion("");
     setError("");
     setCurrentView("chat");
@@ -488,12 +509,26 @@ function App() {
   }
 
   /**
-   * Restore a saved conversation and return to the chat workspace.
-   * Any unsaved draft paper context is discarded.
+   * Restore a saved conversation and its composer paper scope.
+   *
+   * The conversation's paper snapshots remain persistent even if the
+   * user subsequently clears the visible composer scope.
    */
   function handleSelectConversation(conversationId: string) {
+    const conversation = conversations.find(
+      (item) => item.id === conversationId,
+    );
+
     selectConversation(conversationId);
     setDraftPaper(null);
+
+    setComparisonPapers(
+      conversation?.papers?.map((paper) => ({
+        arxiv_id: paper.arxivId,
+        title: paper.paperTitle,
+      })) ?? [],
+    );
+
     setQuestion("");
     setError("");
     setCurrentView("chat");
@@ -508,22 +543,107 @@ function App() {
   function handleStartResearch(paper: Paper) {
     selectConversation(null);
     setDraftPaper(paper);
-
+    setComparisonPapers([]);
     setQuestion("");
     setError("");
     setCurrentView("chat");
   }
 
   /**
-   * Remove the paper filter from the active conversation or unsaved draft.
+   * Create a persistent comparison conversation and generate its initial
+   * comparison using the dedicated comparison endpoint.
    *
-   * Existing messages and citations are preserved.
+   * Both the initial request and its response are stored as ordinary
+   * conversation messages so the complete exchange survives restoration.
+   */
+  async function handleComparePapers(papers: Paper[]) {
+    if (papers.length < 2 || papers.length > 3 || isLoading) {
+      return;
+    }
+
+    const paperSnapshots: ConversationPaper[] = papers.map((paper) => ({
+      arxivId: paper.arxiv_id,
+      paperTitle: paper.title,
+    }));
+
+    // Create and activate a saved conversation before starting inference.
+    const conversation = createComparisonConversation(paperSnapshots);
+
+    setDraftPaper(null);
+    setComparisonPapers(
+      paperSnapshots.map((paper) => ({
+        arxiv_id: paper.arxivId,
+        title: paper.paperTitle,
+      })),
+    );
+    setQuestion("");
+    setError("");
+    setCurrentView("chat");
+    setIsLoading(true);
+
+    const userMessage: UserMessage = {
+      id: generateMessageId(),
+      role: "user",
+      content: "Compare the selected research papers.",
+      createdAt: new Date().toISOString(),
+    };
+
+    addMessage(conversation.id, userMessage);
+
+    try {
+      const result = await comparePapers({
+        arxiv_ids: paperSnapshots.map((paper) => paper.arxivId),
+      });
+
+      const assistantMessage: AssistantMessage = {
+        id: generateMessageId(),
+        role: "assistant",
+        content: result.answer,
+        citations: result.citations,
+        contextTokenCount: result.context_token_count,
+        createdAt: new Date().toISOString(),
+
+        totalResponseDurationSeconds:
+          result.total_response_duration_seconds ?? undefined,
+
+        generationDurationSeconds:
+          result.generation_duration_seconds ?? undefined,
+
+        generationTokenCount:
+          result.generation_token_count ?? undefined,
+
+        tokensPerSecond:
+          result.tokens_per_second ?? undefined,
+      };
+
+      addMessage(conversation.id, assistantMessage);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong while comparing the selected papers.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  /**
+   * Clear the visible composer scope without deleting a comparison
+   * conversation's persistent paper references.
+   *
+   * Ordinary single-paper conversations retain their existing behavior.
    */
   function handleClearPaperScope() {
-    if (activeConversationId) {
-      updatePaperScope(activeConversationId, null, null);
-    } else {
-      setDraftPaper(null);
+    setComparisonPapers([]);
+
+    // A comparison's saved papers remain the retrieval scope for follow-ups.
+    if (!activeConversation?.papers?.length) {
+      if (activeConversationId) {
+        updatePaperScope(activeConversationId, null, null);
+      } else {
+        setDraftPaper(null);
+      }
     }
 
     setError("");
@@ -586,10 +706,17 @@ function App() {
     setError("");
 
     try {
-      // Send the current question, its paper scope, and recent conversation context.
+      // Use the persistent conversation scope for retrieval.
+      // Clearing the visible composer chips must not remove comparison scope.
       const result = await askQuestion({
         question: trimmedQuestion,
-        arxiv_id: conversation.arxivId,
+        ...(conversation.papers?.length
+          ? {
+              arxiv_ids: conversation.papers.map((paper) => paper.arxivId),
+            }
+          : {
+              arxiv_id: conversation.arxivId,
+            }),
         history,
       });
 
@@ -675,7 +802,10 @@ function App() {
         )}
 
         {currentView === "library" ? (
-          <PaperLibrary onStartResearch={handleStartResearch} />
+          <PaperLibrary
+            onStartResearch={handleStartResearch}
+            onComparePapers={handleComparePapers}
+          />
         ) : currentView === "conversations" ? (
           <ConversationList
             conversations={conversations}
@@ -687,6 +817,7 @@ function App() {
           <section className="chat-workspace">
             {/* Show the welcome state only for a genuinely empty conversation. */}
             {(!activeConversation || activeConversation.messages.length === 0) &&
+              comparisonPapers.length === 0 &&
               !isLoading &&
               !error && (
                 <div className="welcome-section">
@@ -720,7 +851,11 @@ function App() {
 
             {isLoading && (
               <div className="loading-state" role="status">
-                <p>Researching your question...</p>
+                <p>
+                  {isComparisonScope
+                    ? "Comparing selected papers..."
+                    : "Researching your question..."}
+                </p>
               </div>
             )}
 
@@ -749,13 +884,8 @@ function App() {
               className="question-form"
               onSubmit={handleAskQuestion}
             >
-              {/*
-               * Keep the selected-paper context inside the sticky composer.
-               * This makes the context tab move with the question input.
-               */}
-              {selectedPaper && (
+              {scopePapers.length > 0 && (
                 <div className="research-scope">
-                  {/* First line: context label and circular close control. */}
                   <div className="research-scope-heading">
                     <div className="research-scope-label-group">
                       <span className="research-scope-icon" aria-hidden="true">
@@ -763,7 +893,9 @@ function App() {
                       </span>
 
                       <span className="research-scope-label">
-                        PAPER CONTEXT
+                        {isComparisonScope
+                          ? "COMPARISON CONTEXT"
+                          : "PAPER CONTEXT"}
                       </span>
                     </div>
 
@@ -779,20 +911,31 @@ function App() {
                     </button>
                   </div>
 
-                  {/* Second line: title and arXiv ID always stay on one line. */}
-                  <div
-                    className="research-scope-details"
-                    title={`${selectedPaper.title} · arXiv: ${selectedPaper.arxiv_id}`}
-                  >
-                    <strong className="research-scope-title">
-                      {selectedPaper.title}
-                    </strong>
+                  {scopePapers.map((paper, index) => (
+                    <div
+                      className="research-scope-details"
+                      key={paper.arxiv_id}
+                      title={`${paper.title} · arXiv: ${paper.arxiv_id}`}
+                    >
+                      {isComparisonScope && (
+                        <span
+                          className="research-scope-paper-number"
+                          aria-label={`Paper ${index + 1}`}
+                        >
+                          {index + 1}
+                        </span>
+                      )}
 
-                    <span className="research-scope-id">
-                      <span className="research-scope-separator">·</span>
-                      arXiv: {selectedPaper.arxiv_id}
-                    </span>
-                  </div>
+                      <strong className="research-scope-title">
+                        {paper.title}
+                      </strong>
+
+                      <span className="research-scope-id">
+                        <span className="research-scope-separator">·</span>
+                        arXiv: {paper.arxiv_id}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -829,16 +972,24 @@ function App() {
 
               <div className="question-form-footer">
                 <span>
-                  {selectedPaper
-                    ? "Research is restricted to the selected paper."
-                    : "Answers are grounded in the scientific literature indexed by SciLitRAG."}
+                  {isComparisonScope
+                    ? "Follow-up questions use evidence from all papers in this comparison."
+                    : selectedPaper
+                      ? "Research is restricted to the selected paper."
+                      : "Answers are grounded in the scientific literature indexed by SciLitRAG."}
                 </span>
 
                 <button
                   type="submit"
                   disabled={!question.trim() || isLoading}
                 >
-                  <span>{isLoading ? "Researching..." : "Ask question"}</span>
+                  <span>
+                    {isLoading
+                      ? isComparisonScope
+                        ? "Comparing..."
+                        : "Researching..."
+                      : "Ask question"}
+                  </span>
                   <ArrowRight size={14} strokeWidth={2} />
                 </button>
               </div>

@@ -1,4 +1,16 @@
+
 import type { Citation } from "./api";
+
+/**
+ * A snapshot of a paper associated with a research conversation.
+ *
+ * Paper metadata is stored locally rather than resolved from the Paper
+ * Library so conversations remain restorable if library entries change.
+ */
+export interface ConversationPaper {
+  arxivId: string;
+  paperTitle: string;
+}
 
 /**
  * A message submitted by the user.
@@ -41,15 +53,22 @@ export type ChatMessage = UserMessage | AssistantMessage;
 /**
  * A persistent research conversation.
  *
- * Paper metadata is stored as a snapshot to preserve the original
- * research scope independently of future library changes.
+ * The legacy single-paper fields remain available for backward compatibility.
+ * The optional papers array supports multi-paper research and comparisons.
+ * Paper metadata is stored as a snapshot, independent of future library changes.
  */
 export interface Conversation {
   id: string;
   title: string;
   messages: ChatMessage[];
+
+  // Legacy single-paper metadata; retained for existing conversations.
   arxivId: string | null;
   paperTitle: string | null;
+
+  // Complete research scope for multi-paper conversations.
+  papers?: ConversationPaper[];
+
   createdAt: string;
   updatedAt: string;
 }

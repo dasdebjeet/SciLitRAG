@@ -4,6 +4,9 @@ import type { Conversation } from "../types/conversation";
 /**
  * Versioned storage key allows the persisted conversation format
  * to evolve without silently interpreting older data incorrectly.
+ *
+ * Version 1 remains valid because the new `papers` property is optional
+ * and existing single-paper fields are retained.
  */
 const STORAGE_KEY = "scilitrag.conversations.v1";
 
@@ -13,8 +16,32 @@ interface ConversationStorage {
 }
 
 /**
+ * Validates a paper snapshot before accepting persisted conversation data.
+ *
+ * Both fields are required because paper references must remain meaningful
+ * when a conversation is restored independently of the Paper Library.
+ */
+function isConversationPaper(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const paper = value as Record<string, unknown>;
+
+  return (
+    typeof paper.arxivId === "string" &&
+    paper.arxivId.trim().length > 0 &&
+    typeof paper.paperTitle === "string" &&
+    paper.paperTitle.trim().length > 0
+  );
+}
+
+/**
  * Performs basic runtime validation before trusting data loaded from
  * localStorage. TypeScript types alone cannot validate parsed JSON.
+ *
+ * The optional `papers` property preserves compatibility with conversations
+ * saved before multi-paper research was introduced.
  */
 function isConversation(value: unknown): value is Conversation {
   if (typeof value !== "object" || value === null) {
@@ -33,6 +60,15 @@ function isConversation(value: unknown): value is Conversation {
       typeof conversation.paperTitle !== "string") ||
     typeof conversation.createdAt !== "string" ||
     typeof conversation.updatedAt !== "string"
+  ) {
+    return false;
+  }
+
+  // Validate multi-paper metadata only when the property is present.
+  if (
+    conversation.papers !== undefined &&
+    (!Array.isArray(conversation.papers) ||
+      !conversation.papers.every(isConversationPaper))
   ) {
     return false;
   }

@@ -8,9 +8,9 @@ the HTTP layer.
 """
 
 from __future__ import annotations
-import time
 
 import logging
+import time
 from threading import Lock
 from typing import Annotated, Any
 
@@ -63,6 +63,7 @@ def ask_question(
             result = pipeline.answer(
                 question=request.question,
                 arxiv_id=request.arxiv_id,
+                arxiv_ids=request.arxiv_ids,
                 history=[
                     message.model_dump()
                     for message in request.history

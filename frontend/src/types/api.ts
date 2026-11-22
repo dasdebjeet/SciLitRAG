@@ -20,12 +20,14 @@ export interface ConversationHistoryMessage {
 /**
  * Payload submitted to POST /api/v1/ask.
  *
- * arxiv_id is optional because the backend supports unrestricted
- * retrieval when no paper identifier is provided.
+ * Retrieval can be unrestricted, scoped to one paper, or scoped to
+ * multiple papers for a comparison conversation. The backend rejects
+ * requests that specify both single-paper and multi-paper scopes.
  */
 export interface AskRequest {
   question: string;
   arxiv_id?: string | null;
+  arxiv_ids?: string[] | null;
   history: ConversationHistoryMessage[];
 }
 
@@ -62,6 +64,41 @@ export interface AskResponse {
   generation_duration_seconds?: number | null;
   generation_token_count?: number | null;
   tokens_per_second?: number | null;
+}
+
+/**
+ * Payload submitted to POST /api/v1/compare.
+ *
+ * The backend accepts two or three distinct arXiv identifiers.
+ * Selection validation is also enforced by the backend.
+ */
+export interface CompareRequest {
+  arxiv_ids: string[];
+}
+
+/**
+ * Complete response returned by POST /api/v1/compare.
+ *
+ * The answer contains the generated comparison, while citations
+ * retain the evidence passages used to support its conclusions.
+ */
+export interface CompareResponse {
+  arxiv_ids: string[];
+  answer: string;
+  citations: Citation[];
+  context_token_count: number;
+
+  // Time spent inside the language model's generate() call.
+  generation_duration_seconds?: number | null;
+
+  // Number of tokens produced by the language model.
+  generation_token_count?: number | null;
+
+  // Language-model generation throughput.
+  tokens_per_second?: number | null;
+
+  // Total server-side comparison request duration.
+  total_response_duration_seconds: number;
 }
 
 /**

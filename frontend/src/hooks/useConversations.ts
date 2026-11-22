@@ -1,7 +1,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { ChatMessage, Conversation } from "../types/conversation";
+import type {
+  ChatMessage,
+  Conversation,
+  ConversationPaper,
+} from "../types/conversation";
 import {
   loadConversations,
   saveConversations,
@@ -50,9 +54,9 @@ function sortConversations(
 /**
  * Manages conversation state and browser persistence.
  *
- * Conversation messages and metadata are persisted locally. This hook
- * does not send previous messages to the backend; each research request
- * remains independent until backend chat-history support is implemented.
+ * Conversation messages and paper metadata are persisted locally.
+ * Backend request history and retrieval are handled separately by the API
+ * layer; this hook is responsible only for the frontend conversation state.
  */
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>(
@@ -105,7 +109,7 @@ export function useConversations() {
   }, [conversations]);
 
   /**
-   * Creates and immediately activates a conversation.
+   * Creates and immediately activates a single-paper conversation.
    * Called when the user sends the first message, not when they click New Chat.
    * Paper metadata is captured as a snapshot for future restoration.
    */
@@ -119,6 +123,45 @@ export function useConversations() {
         messages: [],
         arxivId,
         paperTitle,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      setConversations((previous) =>
+        sortConversations([conversation, ...previous]),
+      );
+      setActiveConversationId(conversation.id);
+
+      return conversation;
+    },
+    [],
+  );
+
+  /**
+   * Creates and immediately activates a multi-paper conversation.
+   *
+   * The first paper is also copied into the legacy single-paper fields
+   * so older components that read those fields continue to work.
+   */
+  const createComparisonConversation = useCallback(
+    (papers: ConversationPaper[]) => {
+      if (papers.length < 2 || papers.length > 3) {
+        throw new Error("A comparison conversation requires 2–3 papers.");
+      }
+
+      const now = new Date().toISOString();
+      const paperSnapshots = papers.map((paper) => ({
+        arxivId: paper.arxivId,
+        paperTitle: paper.paperTitle,
+      }));
+
+      const conversation: Conversation = {
+        id: generateId(),
+        title: "New comparison",
+        messages: [],
+        arxivId: paperSnapshots[0].arxivId,
+        paperTitle: paperSnapshots[0].paperTitle,
+        papers: paperSnapshots,
         createdAt: now,
         updatedAt: now,
       };
@@ -203,7 +246,7 @@ export function useConversations() {
     [],
   );
 
-  /** Updates the paper scope associated with a conversation. */
+  /** Updates the legacy single-paper scope of a conversation. */
   const updatePaperScope = useCallback(
     (
       conversationId: string,
@@ -218,6 +261,29 @@ export function useConversations() {
                   ...conversation,
                   arxivId,
                   paperTitle,
+                  updatedAt: new Date().toISOString(),
+                }
+              : conversation,
+          ),
+        ),
+      );
+    },
+    [],
+  );
+
+  /**
+   * Replaces the complete multi-paper snapshot for a conversation.
+   * Passing an empty array clears the multi-paper metadata.
+   */
+  const updateConversationPapers = useCallback(
+    (conversationId: string, papers: ConversationPaper[]) => {
+      setConversations((previous) =>
+        sortConversations(
+          previous.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  papers: papers.length > 0 ? papers : undefined,
                   updatedAt: new Date().toISOString(),
                 }
               : conversation,
@@ -245,10 +311,12 @@ export function useConversations() {
     activeConversation,
     storageError,
     createConversation,
+    createComparisonConversation,
     selectConversation,
     addMessage,
     renameConversation,
     updatePaperScope,
+    updateConversationPapers,
     deleteConversation,
     clearAllConversations,
   };

@@ -57,7 +57,7 @@ transformers_logging.disable_progress_bar()
 
 from fastapi import FastAPI
 
-from scilitrag.api.routes import ask, health, papers
+from scilitrag.api.routes import ask, health, papers, compare
 
 
 # Create the central FastAPI application.
@@ -86,6 +86,13 @@ app.include_router(
 # Register paper-library endpoints.
 app.include_router(
     papers.router,
+    prefix="/api/v1",
+    tags=["Research"],
+)
+
+# Register paper-comparison endpoints.
+app.include_router(
+    compare.router,
     prefix="/api/v1",
     tags=["Research"],
 )

@@ -1089,7 +1089,7 @@
   white-space: nowrap;
 }
 
-/* Second line: title and arXiv ID stay on one row. */
+/* Each selected paper gets its own row in the context scope. */
 .research-scope-details {
   display: flex;
   align-items: center;
@@ -1098,6 +1098,26 @@
   width: 100%;
   min-width: 0;
   overflow: hidden;
+}
+
+/* Circular index distinguishes papers in a multi-paper comparison. */
+.research-scope-paper-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 22px;
+
+  width: 22px;
+  height: 22px;
+
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 50%;
+
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Long titles truncate rather than wrapping. */

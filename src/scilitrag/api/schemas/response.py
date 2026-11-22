@@ -152,3 +152,56 @@ class AskResponse(BaseModel):
             "including inference and API response construction."
         ),
     )
+
+
+class CompareResponse(BaseModel):
+    """Represent a grounded comparison of selected research papers."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    arxiv_ids: list[str] = Field(
+        ...,
+        min_length=2,
+        max_length=3,
+        description="arXiv IDs of the papers included in the comparison.",
+    )
+
+    answer: str = Field(
+        ...,
+        description=(
+            "Generated comparison covering methodologies, findings, "
+            "similarities, differences, and limitations."
+        ),
+    )
+
+    citations: list[CitationResponse] = Field(
+        default_factory=list,
+        description="Verified evidence references supporting the comparison.",
+    )
+
+    context_token_count: int = Field(
+        ...,
+        ge=0,
+        description="Number of tokens used by the assembled comparison context.",
+    )
+
+    generation_duration_seconds: float | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    generation_token_count: int | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    tokens_per_second: float | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    total_response_duration_seconds: float = Field(
+        ...,
+        ge=0,
+        description="Total server-side comparison processing time.",
+    )

@@ -23,24 +23,37 @@ class FakeAnswerPipeline:
     def __init__(self) -> None:
         self.should_fail = False
         self.received_history: list[dict[str, str]] | None = None
+        self.received_arxiv_id: str | None = None
+        self.received_arxiv_ids: list[str] | None = None
 
     def answer(
         self,
         question: str,
         arxiv_id: str | None = None,
         history: list[dict[str, str]] | None = None,
+        arxiv_ids: list[str] | None = None,
     ) -> SimpleNamespace:
         """Capture request context and return a predictable test result."""
 
         self.received_history = history
+        self.received_arxiv_id = arxiv_id
+        self.received_arxiv_ids = arxiv_ids
 
         if self.should_fail:
             raise RuntimeError("Simulated internal model failure")
 
+        # Use the first selected paper for the fake citation when a
+        # multi-paper retrieval scope is supplied.
+        citation_arxiv_id = (
+            arxiv_id
+            or (arxiv_ids[0] if arxiv_ids else None)
+            or "2611.17111v1"
+        )
+
         citation = SimpleNamespace(
             evidence_id="1",
             chunk_id="test-chunk-001",
-            arxiv_id=arxiv_id or "2611.17111v1",
+            arxiv_id=citation_arxiv_id,
             title="Test Research Paper",
             page_number=2,
             text="This is a test evidence passage.",
@@ -160,6 +173,31 @@ def test_ask_forwards_conversation_history(
 
     assert response.status_code == 200
     assert fake_pipeline.received_history == history
+
+
+def test_ask_forwards_multi_paper_retrieval_scope(
+    test_client: tuple[TestClient, FakeAnswerPipeline],
+) -> None:
+    """The API should forward all selected paper IDs to the answer pipeline."""
+
+    client, fake_pipeline = test_client
+
+    arxiv_ids = ["2611.17101v1", "2611.16871v1", "2611.16555v1"]
+
+    response = client.post(
+        "/api/v1/ask",
+        json={
+            "question": "How do these papers differ in their methodology?",
+            "arxiv_ids": arxiv_ids,
+        },
+    )
+
+    assert response.status_code == 200
+    assert fake_pipeline.received_arxiv_id is None
+    assert fake_pipeline.received_arxiv_ids == arxiv_ids
+
+    # The fake citation should retain the source paper identifier.
+    assert response.json()["citations"][0]["arxiv_id"] == arxiv_ids[0]
 
 
 def test_ask_rejects_invalid_conversation_role(

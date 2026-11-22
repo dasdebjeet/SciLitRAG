@@ -10,9 +10,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from scilitrag.generation.generator import GenerationResult
 from scilitrag.pipeline import answer_pipeline
 from scilitrag.pipeline.context_builder import Evidence
-from scilitrag.generation.generator import GenerationResult
 
 
 @pytest.mark.parametrize(
@@ -68,9 +68,8 @@ def test_general_conversation_skips_retrieval(
     monkeypatch.setattr(
         answer_pipeline,
         "QwenGenerator",
-        lambda: mock_generator,
+        lambda **kwargs: mock_generator,
     )
-
     # Retrieval must never be initialized for a general-conversation question.
     def fail_if_retrieval_starts(*args: object, **kwargs: object) -> None:
         pytest.fail("General conversation unexpectedly initialized retrieval.")
@@ -316,3 +315,133 @@ def test_answer_uses_context_aware_query_for_retrieval_and_reranking(
     # No ranked evidence means generation should not be initialized.
     assert result.citations == []
     assert result.context_token_count == 0
+
+
+def test_answer_retrieves_and_reranks_each_selected_paper(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """
+    Multi-paper follow-ups should search and rerank each selected paper
+    independently while preserving the conversation-aware retrieval query.
+    """
+
+    arxiv_ids = ["2611.17111", "2611.17112", "2611.17113"]
+
+    mock_hybrid = MagicMock()
+    mock_hybrid.search.return_value = [
+        {"chunk_id": "test-chunk-001", "text": "A retrieved research passage."}
+    ]
+
+    mock_reranker = MagicMock()
+    # Empty ranked results stop the pipeline before context assembly and
+    # generation, keeping this test focused on retrieval orchestration.
+    mock_reranker.rerank.return_value = []
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "HybridRetriever",
+        lambda **kwargs: mock_hybrid,
+    )
+    monkeypatch.setattr(
+        answer_pipeline,
+        "CrossEncoderReranker",
+        lambda **kwargs: mock_reranker,
+    )
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    history = [
+        {"role": "user", "content": "Compare the methods used in these papers."},
+        {"role": "assistant", "content": "They use different approaches."},
+    ]
+    question = "Which approach is more computationally efficient?"
+
+    result = pipeline.answer(
+        question=question,
+        arxiv_ids=arxiv_ids,
+        history=history,
+    )
+
+    expected_query = answer_pipeline.build_retrieval_query(
+        question=question,
+        history=history,
+    )
+
+    # Each selected paper must receive its own scoped retrieval request.
+    assert mock_hybrid.search.call_count == len(arxiv_ids)
+
+    searched_ids = [
+        call.kwargs["arxiv_id"]
+        for call in mock_hybrid.search.call_args_list
+    ]
+    assert searched_ids == arxiv_ids
+
+    # Every paper's candidates must be reranked using the same contextual query.
+    assert mock_reranker.rerank.call_count == len(arxiv_ids)
+
+    for call in mock_reranker.rerank.call_args_list:
+        assert call.kwargs["query"] == expected_query
+
+    # The multi-paper scope must not be reduced to a single-paper filter.
+    for call in mock_hybrid.search.call_args_list:
+        assert call.kwargs["query"] == expected_query
+
+    # No ranked evidence means generation should not be initialized.
+    assert result.citations == []
+    assert result.context_token_count == 0
+    assert "could not find relevant research passages" in result.answer
+
+    # Retrieval resources remain alive until pipeline shutdown.
+    mock_reranker.close.assert_not_called()
+    mock_hybrid.close.assert_not_called()
+
+    pipeline.close()
+
+    mock_reranker.close.assert_called_once()
+    mock_hybrid.close.assert_called_once()
+
+
+def test_interleave_candidates_balances_papers_by_rank() -> None:
+    """Candidates should be interleaved by rank across paper groups."""
+
+    paper_a = [
+        {"chunk_id": "a1", "arxiv_id": "paper-a"},
+        {"chunk_id": "a2", "arxiv_id": "paper-a"},
+        {"chunk_id": "a3", "arxiv_id": "paper-a"},
+    ]
+    paper_b = [
+        {"chunk_id": "b1", "arxiv_id": "paper-b"},
+        {"chunk_id": "b2", "arxiv_id": "paper-b"},
+    ]
+    paper_c = [
+        {"chunk_id": "c1", "arxiv_id": "paper-c"},
+    ]
+
+    combined = answer_pipeline.interleave_candidates(
+        [paper_a, paper_b, paper_c]
+    )
+
+    assert [item["chunk_id"] for item in combined] == [
+        "a1", "b1", "c1",
+        "a2", "b2",
+        "a3",
+    ]
+
+    assert [item["arxiv_id"] for item in combined] == [
+        "paper-a", "paper-b", "paper-c",
+        "paper-a", "paper-b",
+        "paper-a",
+    ]
+
+
+def test_interleave_candidates_handles_empty_groups() -> None:
+    """Empty paper groups should not disrupt candidate ordering."""
+
+    paper_a = [{"chunk_id": "a1", "arxiv_id": "paper-a"}]
+    paper_b: list[dict[str, object]] = []
+
+    combined = answer_pipeline.interleave_candidates(
+        [paper_a, paper_b, []]
+    )
+
+    assert combined == paper_a
