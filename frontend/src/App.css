@@ -494,24 +494,85 @@
   font-size: 0.9em;
 }
 
+
+/* ============================================================
+   Research comparison tables
+   ============================================================ */
+
+/*
+ * Keep wide research tables readable instead of compressing
+ * every column into the available answer-card width.
+ *
+ * The table scrolls horizontally when its natural minimum
+ * width exceeds the available space.
+ */
 .answer-card table {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   border-collapse: collapse;
   font-size: 13px;
+  line-height: 1.6;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 .answer-card th,
 .answer-card td {
-  padding: 11px 13px;
+  min-width: 120px;
+  padding: 13px 15px;
   border: 1px solid var(--color-border);
   text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
 }
 
 .answer-card th {
+  min-width: 220px;
   color: var(--color-text);
   background: var(--color-surface-raised);
+  font-weight: 700;
+  white-space: normal;
+}
+
+.answer-card td {
+  color: var(--color-text-secondary);
+}
+
+/* Give the first column enough room for paper titles. */
+.answer-card th:first-child,
+.answer-card td:first-child {
+  min-width: 190px;
+}
+
+/* Keep table rows visually distinct. */
+.answer-card tbody tr:nth-child(even) {
+  background: color-mix(
+    in srgb,
+    var(--color-surface-raised) 35%,
+    transparent
+  );
+}
+
+/* Subtle hover feedback helps track wide rows. */
+.answer-card tbody tr:hover {
+  background: var(--color-surface-hover);
+}
+
+/* Make the horizontal scrollbar unobtrusive but usable. */
+.answer-card table::-webkit-scrollbar {
+  height: 7px;
+}
+
+.answer-card table::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 8px;
+}
+
+.answer-card table::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .answer-card a {
