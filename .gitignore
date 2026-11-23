@@ -7,6 +7,7 @@ dist/
 build/
 artifacts/models/
 
+
 # Virtual environments
 .venv/
 .venv-*/
@@ -23,6 +24,10 @@ env/
 data/raw/*
 data/processed/*
 data/metadata/*
+
+# User-uploaded research documents and extracted content
+data/uploads/*
+!data/uploads/.gitkeep
 
 # Preserve directory placeholders
 !data/raw/.gitkeep
