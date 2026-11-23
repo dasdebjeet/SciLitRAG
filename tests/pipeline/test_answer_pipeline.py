@@ -445,3 +445,230 @@ def test_interleave_candidates_handles_empty_groups() -> None:
     )
 
     assert combined == paper_a
+
+
+def _make_uploaded_candidate(upload_id: str) -> dict[str, object]:
+    """Build a representative uploaded-document chunk for pipeline tests."""
+
+    return {
+        "chunk_id": "uploaded-chunk-001",
+        "upload_id": upload_id,
+        "source_type": "upload",
+        "source_id": upload_id,
+        "filename": "research-paper.pdf",
+        "title": "Uploaded Research Paper",
+        "page_number": 1,
+        "total_pages": 5,
+        "chunk_index": 0,
+        "text": "A retrieved passage from the uploaded research paper.",
+        "token_count": 12,
+        "char_count": 55,
+        "arxiv_id": None,
+    }
+
+
+def test_uploaded_document_scope_uses_isolated_retrieval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Uploaded-document questions must use isolated retrieval, not Qdrant."""
+
+    upload_id = "test-upload-001"
+    mock_uploaded = MagicMock()
+    mock_uploaded.search.return_value = [
+        _make_uploaded_candidate(upload_id)
+    ]
+
+    mock_reranker = MagicMock()
+    mock_reranker.rerank.return_value = []
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "UploadedDocumentRetriever",
+        lambda *args, **kwargs: mock_uploaded,
+    )
+    monkeypatch.setattr(
+        answer_pipeline,
+        "CrossEncoderReranker",
+        lambda **kwargs: mock_reranker,
+    )
+
+    def fail_if_hybrid_is_initialized(*args: object, **kwargs: object) -> None:
+        pytest.fail("Uploaded-document retrieval initialized HybridRetriever.")
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "HybridRetriever",
+        fail_if_hybrid_is_initialized,
+    )
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    # Even a greeting must use the explicitly selected uploaded-document scope.
+    result = pipeline.answer(
+        question="Hello",
+        upload_id=upload_id,
+    )
+
+    mock_uploaded.search.assert_called_once()
+    assert mock_uploaded.search.call_args.kwargs["query"] == "Hello"
+    assert mock_uploaded.search.call_args.kwargs["top_k"] == pipeline.retrieval_k
+
+    mock_reranker.rerank.assert_called_once()
+    assert mock_reranker.rerank.call_args.kwargs["query"] == "Hello"
+
+    # Empty reranked results should stop before generation.
+    assert result.citations == []
+    assert result.context_token_count == 0
+
+    pipeline.close()
+    mock_uploaded.close.assert_called_once()
+    mock_reranker.close.assert_called_once()
+
+
+def test_uploaded_document_follow_up_reuses_same_retriever(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Follow-up questions should reuse the retriever for the same upload."""
+
+    upload_id = "test-upload-002"
+    mock_uploaded = MagicMock()
+    mock_uploaded.upload_id = upload_id
+    mock_uploaded.search.return_value = [
+        _make_uploaded_candidate(upload_id)
+    ]
+
+    mock_reranker = MagicMock()
+    mock_reranker.rerank.return_value = []
+
+    retriever_factory = MagicMock(return_value=mock_uploaded)
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "UploadedDocumentRetriever",
+        retriever_factory,
+    )
+    monkeypatch.setattr(
+        answer_pipeline,
+        "CrossEncoderReranker",
+        lambda **kwargs: mock_reranker,
+    )
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    history = [
+        {"role": "user", "content": "What methodology does this paper use?"},
+        {"role": "assistant", "content": "It uses a transformer-based method."},
+    ]
+
+    pipeline.answer(
+        question="What are its limitations?",
+        upload_id=upload_id,
+        history=history,
+    )
+
+    pipeline.answer(
+        question="How does it compare with existing approaches?",
+        upload_id=upload_id,
+        history=history,
+    )
+
+    # The same uploaded-document retriever should serve both requests.
+    retriever_factory.assert_called_once()
+    assert mock_uploaded.search.call_count == 2
+
+    expected_queries = [
+        answer_pipeline.build_retrieval_query(
+            "What are its limitations?",
+            history,
+        ),
+        answer_pipeline.build_retrieval_query(
+            "How does it compare with existing approaches?",
+            history,
+        ),
+    ]
+
+    actual_queries = [
+        call.kwargs["query"]
+        for call in mock_uploaded.search.call_args_list
+    ]
+    assert actual_queries == expected_queries
+
+    pipeline.close()
+    mock_uploaded.close.assert_called_once()
+
+
+def test_uploaded_document_with_no_candidates_returns_without_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An empty upload retrieval result should not initialize the generator."""
+
+    mock_uploaded = MagicMock()
+    mock_uploaded.search.return_value = []
+
+    mock_reranker = MagicMock()
+
+    monkeypatch.setattr(
+        answer_pipeline,
+        "UploadedDocumentRetriever",
+        lambda *args, **kwargs: mock_uploaded,
+    )
+    monkeypatch.setattr(
+        answer_pipeline,
+        "CrossEncoderReranker",
+        lambda **kwargs: mock_reranker,
+    )
+
+    mock_generator = MagicMock()
+    monkeypatch.setattr(
+        answer_pipeline,
+        "QwenGenerator",
+        lambda **kwargs: mock_generator,
+    )
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    result = pipeline.answer(
+        question="Summarize the uploaded paper.",
+        upload_id="test-upload-003",
+    )
+
+    mock_uploaded.search.assert_called_once()
+    mock_reranker.rerank.assert_not_called()
+    mock_generator.generate.assert_not_called()
+
+    assert result.citations == []
+    assert result.context_token_count == 0
+    assert result.answer
+
+    pipeline.close()
+
+    mock_uploaded.close.assert_called_once()
+    mock_generator.close.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("scope_kwargs",),
+    [
+        ({"arxiv_id": "2611.17111"},),
+        ({"arxiv_ids": ["2611.17111", "2611.17112"]},),
+    ],
+)
+def test_uploaded_document_scope_rejects_arxiv_scope(
+    scope_kwargs: dict[str, object],
+) -> None:
+    """An uploaded document and indexed-paper scope cannot be combined."""
+
+    pipeline = answer_pipeline.AnswerPipeline()
+
+    with pytest.raises(ValueError):
+        pipeline.answer(
+            question="Compare these research findings.",
+            upload_id="test-upload-004",
+            **scope_kwargs,
+        )
+
+    # Invalid scope combinations must fail before resources are initialized.
+    assert pipeline.uploaded_retriever is None
+    assert pipeline.hybrid is None
+
+    pipeline.close()
