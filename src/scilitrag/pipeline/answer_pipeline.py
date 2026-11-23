@@ -14,11 +14,11 @@ Resource lifecycle:
 
 Pipeline:
     0. Route simple conversational questions directly to generation.
-    1. Retrieve research candidates using BM25 + dense retrieval + RRF.
+    1. Retrieve research candidates using the selected retrieval scope.
     2. Rerank candidates using a cross-encoder.
     3. Assemble a token-budgeted evidence context.
     4. Generate an answer grounded in the retrieved passages.
-    5. Resolve generated evidence IDs to their original paper metadata.
+    5. Resolve generated evidence IDs to their original source metadata.
 
 Citation strategy:
     The generator receives numeric source labels such as [1] and [2].
@@ -45,6 +45,9 @@ from scilitrag.pipeline.context_builder import (
 )
 from scilitrag.retrieval.hybrid_retriever import HybridRetriever
 from scilitrag.retrieval.reranker import CrossEncoderReranker
+from scilitrag.retrieval.uploaded_document_retriever import (
+    UploadedDocumentRetriever,
+)
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -303,7 +306,7 @@ def is_general_conversation(question: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Result Model
+# Result Models
 # ---------------------------------------------------------------------------
 
 @dataclass(frozen=True)
@@ -314,15 +317,6 @@ class AnswerResult:
     Generation metrics are optional because some responses, such as
     requests without relevant retrieval evidence, do not invoke the
     language model.
-
-    Attributes:
-        question: Original user question.
-        answer: Generated or fallback response.
-        citations: Validated evidence references used in the answer.
-        context_token_count: Number of tokens in the assembled evidence context.
-        generation_duration_seconds: Time spent inside model.generate().
-        generation_token_count: Number of newly generated token IDs.
-        tokens_per_second: Measured generation throughput.
     """
 
     question: str
@@ -449,13 +443,6 @@ def interleave_candidates(
     Each input group is already sorted by cross-encoder relevance.
     Taking candidates in rank order across groups prevents one paper from
     monopolizing the shared context before the other papers contribute.
-
-    Args:
-        candidate_groups: Independently reranked candidate lists, one per
-            selected paper.
-
-    Returns:
-        A combined candidate list ordered by retrieval rank across papers.
     """
 
     combined: list[dict[str, Any]] = []
@@ -585,26 +572,27 @@ class AnswerPipeline:
         self.max_context_tokens = max_context_tokens
         self.max_new_tokens = max_new_tokens
 
-        # Long-lived resources. These are initialized once and reused
-        # across requests instead of being reconstructed inside answer().
+        # Keep one instance of each retrieval/generation resource.
+        # Uploaded and indexed retrieval use separate retrieval backends,
+        # but share the same cross-encoder reranker.
         self.hybrid: HybridRetriever | None = None
+        self.uploaded_retriever: UploadedDocumentRetriever | None = None
         self.reranker: CrossEncoderReranker | None = None
         self.generator: QwenGenerator | None = None
 
         self._initialized = False
         self._closed = False
 
-
     def _release_retrieval_resources(self) -> None:
-        """Release retrieval models before loading the GPU generator.
+        """Release all retrieval models before loading the GPU generator.
 
-        When retrieval is configured for CUDA, both the embedding model and
-        cross-encoder must be released before Qwen is loaded. The resources
-        are recreated lazily when the next research request needs them.
+        When retrieval is configured for CUDA, both embedding models and
+        the cross-encoder must be released before Qwen is loaded.
         """
 
         for resource_name, resource in (
             ("reranker", self.reranker),
+            ("uploaded document retriever", self.uploaded_retriever),
             ("hybrid retriever", self.hybrid),
         ):
             if resource is None:
@@ -622,8 +610,8 @@ class AnswerPipeline:
                 ) from exc
 
         self.reranker = None
+        self.uploaded_retriever = None
         self.hybrid = None
-
 
     def _release_generator(self) -> None:
         """Release Qwen before loading CUDA-based retrieval models."""
@@ -640,7 +628,6 @@ class AnswerPipeline:
             ) from exc
 
         self.generator = None
-
 
     def _initialize_generator(self) -> None:
         """Load Qwen once when possible, after releasing CUDA retrieval models."""
@@ -659,7 +646,6 @@ class AnswerPipeline:
                 max_new_tokens=self.max_new_tokens,
             )
 
-
     def _initialize_retrieval(self) -> None:
         """Load hybrid retrieval and reranking resources on demand."""
 
@@ -667,9 +653,15 @@ class AnswerPipeline:
             raise RuntimeError("Cannot use a closed AnswerPipeline.")
 
         # If retrieval uses CUDA, release Qwen before loading the embedding
-        # and cross-encoder models. This makes GPU usage sequential.
+        # and cross-encoder models.
         if self.device == "cuda":
             self._release_generator()
+
+            # The uploaded-document embedder is not needed for indexed
+            # corpus retrieval. Release it before loading the hybrid retriever.
+            if self.uploaded_retriever is not None:
+                self.uploaded_retriever.close()
+                self.uploaded_retriever = None
 
         if self.hybrid is None:
             LOGGER.info("Initializing persistent hybrid retriever.")
@@ -688,6 +680,62 @@ class AnswerPipeline:
                 device=self.device,
             )
 
+    def _initialize_uploaded_retrieval(self, upload_id: str) -> None:
+        """Load retrieval resources for one isolated uploaded document.
+
+        Uploaded documents use local dense retrieval rather than Qdrant.
+        The cross-encoder reranker is shared with the indexed-paper pipeline.
+
+        On CUDA, the indexed hybrid retriever is released before loading the
+        uploaded-document embedding model. On CPU, both retrieval paths may
+        remain resident.
+        """
+
+        if self._closed:
+            raise RuntimeError("Cannot use a closed AnswerPipeline.")
+
+        if not isinstance(upload_id, str) or not upload_id.strip():
+            raise ValueError("upload_id must be a non-empty string.")
+
+        normalized_upload_id = upload_id.strip()
+
+        # Release Qwen before loading CUDA retrieval models.
+        if self.device == "cuda":
+            self._release_generator()
+
+            # Uploaded-document retrieval does not use the indexed corpus
+            # or Qdrant, so its hybrid retriever is unnecessary here.
+            if self.hybrid is not None:
+                self.hybrid.close()
+                self.hybrid = None
+
+        # Only one uploaded document retriever is cached at a time.
+        # Reuse it for follow-up questions about the same document.
+        if (
+            self.uploaded_retriever is not None
+            and self.uploaded_retriever.upload_id != normalized_upload_id
+        ):
+            self.uploaded_retriever.close()
+            self.uploaded_retriever = None
+
+        if self.uploaded_retriever is None:
+            LOGGER.info(
+                "Initializing uploaded-document retriever | upload_id=%s",
+                normalized_upload_id,
+            )
+            self.uploaded_retriever = UploadedDocumentRetriever(
+                upload_id=normalized_upload_id,
+                model_name=self.embedding_model,
+                device=self.device,
+            )
+
+        # Both retrieval paths use the same cross-encoder configuration.
+        if self.reranker is None:
+            LOGGER.info("Initializing persistent cross-encoder reranker.")
+            self.reranker = CrossEncoderReranker(
+                model_name=self.reranker_model,
+                device=self.device,
+            )
 
     def initialize(self) -> None:
         """Initialize resources for application startup.
@@ -721,7 +769,6 @@ class AnswerPipeline:
             self.close()
             raise
 
-
     def close(self) -> None:
         """Release all resources owned by this pipeline.
 
@@ -737,6 +784,7 @@ class AnswerPipeline:
         resources = (
             ("generator", self.generator),
             ("reranker", self.reranker),
+            ("uploaded document retriever", self.uploaded_retriever),
             ("hybrid retriever", self.hybrid),
         )
 
@@ -757,6 +805,7 @@ class AnswerPipeline:
             # Clear references even when one component fails to close.
             self.generator = None
             self.reranker = None
+            self.uploaded_retriever = None
             self.hybrid = None
 
             self._initialized = False
@@ -770,12 +819,19 @@ class AnswerPipeline:
         arxiv_id: str | None = None,
         history: list[dict[str, str]] | None = None,
         arxiv_ids: list[str] | None = None,
+        upload_id: str | None = None,
     ) -> AnswerResult:
         """Answer a question using direct chat or the grounded RAG pipeline.
 
+        Retrieval scope is mutually exclusive:
+            - upload_id: Search one uploaded PDF.
+            - arxiv_id: Search one indexed paper.
+            - arxiv_ids: Search two or three indexed papers independently.
+            - No scope: Search the full indexed corpus.
+
         The shared models are initialized once and reused for subsequent
-        calls. Request-specific state, including prompts and assembled
-        evidence context, is constructed separately for each question.
+        calls. Request-specific prompts and evidence contexts are constructed
+        separately for each question.
         """
 
         if not question or not question.strip():
@@ -814,9 +870,20 @@ class AnswerPipeline:
                     "Duplicate arXiv identifiers are not allowed."
                 )
 
-        # Resources are initialized according to the request path below.
-        # API startup may already have initialized everything; these checks
-        # ensure standalone usage initializes only what it actually needs.
+        # An uploaded document, a single indexed paper, and a multi-paper
+        # selection are mutually exclusive retrieval scopes.
+        if upload_id is not None:
+            if not isinstance(upload_id, str) or not upload_id.strip():
+                raise ValueError("upload_id must be a non-empty string.")
+
+            if arxiv_id is not None or arxiv_ids is not None:
+                raise ValueError(
+                    "Use only one retrieval scope: upload_id, "
+                    "arxiv_id, or arxiv_ids."
+                )
+
+            upload_id = upload_id.strip()
+
         if self._closed:
             raise RuntimeError("Cannot answer using a closed AnswerPipeline.")
 
@@ -830,12 +897,13 @@ class AnswerPipeline:
         # Stage 0: General conversation without research retrieval
         # ---------------------------------------------------------------
 
-        # An explicit arXiv filter indicates that the caller wants a
-        # paper-scoped research answer, so preserve the normal RAG path.
+        # An explicit retrieval scope indicates that the caller wants
+        # a grounded research answer, so preserve the normal RAG path.
         if (
             not history
             and arxiv_id is None
             and arxiv_ids is None
+            and upload_id is None
             and is_general_conversation(question)
         ):
             LOGGER.info(
@@ -847,8 +915,6 @@ class AnswerPipeline:
             if self.generator is None:
                 raise RuntimeError("Generator initialization failed.")
 
-            # Reuse the persistent generator instead of loading a new
-            # Qwen instance and releasing it after every conversational turn.
             generation_result = self.generator.generate(
                 prompt=question,
                 system_prompt=GENERAL_CONVERSATION_SYSTEM_PROMPT,
@@ -870,80 +936,36 @@ class AnswerPipeline:
             )
 
         # ---------------------------------------------------------------
-        # Stage 1: Hybrid retrieval and cross-encoder reranking
+        # Stage 1: Scoped retrieval and cross-encoder reranking
         # ---------------------------------------------------------------
 
-        self._initialize_retrieval()
-
-        if self.hybrid is None or self.reranker is None:
-            raise RuntimeError("Retrieval resource initialization failed.")
-
-        LOGGER.info("Starting hybrid retrieval.")
-
+        LOGGER.info("Starting research retrieval.")
         retrieval_start = time.perf_counter()
 
         ranked_candidates: list[dict[str, Any]] = []
 
-        if arxiv_ids is not None:
-            # Retrieve each selected paper independently. This prevents
-            # papers with more indexed passages from dominating retrieval.
-            candidate_groups: list[list[dict[str, Any]]] = []
+        if upload_id is not None:
+            # Uploaded PDFs use isolated local dense retrieval. This path
+            # must never initialize or query the global Qdrant collection.
+            self._initialize_uploaded_retrieval(upload_id)
 
-            for selected_id in arxiv_ids:
-                LOGGER.info(
-                    "Retrieving follow-up evidence | arxiv_id=%s",
-                    selected_id,
+            if self.uploaded_retriever is None or self.reranker is None:
+                raise RuntimeError(
+                    "Uploaded-document retrieval initialization failed."
                 )
-
-                candidates = self.hybrid.search(
-                    query=retrieval_query,
-                    top_k=self.retrieval_k,
-                    retrieval_k=self.retrieval_k,
-                    arxiv_id=selected_id,
-                )
-
-                if not candidates:
-                    LOGGER.warning(
-                        "No follow-up candidates found | arxiv_id=%s",
-                        selected_id,
-                    )
-                    candidate_groups.append([])
-                    continue
-
-                # Rerank each paper's passages against the actual follow-up
-                # query rather than the generic initial-comparison query.
-                reranked = self.reranker.rerank(
-                    query=retrieval_query,
-                    candidates=candidates,
-                    top_k=self.top_k,
-                )
-
-                candidate_groups.append(reranked)
-
-            # Interleave ranked passages so evidence from each selected
-            # paper gets an opportunity to enter the shared context.
-            ranked_candidates = interleave_candidates(candidate_groups)
 
             LOGGER.info(
-                "Multi-paper retrieval completed | papers=%d | "
-                "ranked_candidates=%d | duration=%.3fs",
-                len(arxiv_ids),
-                len(ranked_candidates),
-                time.perf_counter() - retrieval_start,
+                "Retrieving uploaded-document evidence | upload_id=%s",
+                upload_id,
             )
 
-        else:
-            # Preserve the existing retrieval behavior for ordinary chat
-            # and single-paper research conversations.
-            candidates = self.hybrid.search(
+            candidates = self.uploaded_retriever.search(
                 query=retrieval_query,
                 top_k=self.retrieval_k,
-                retrieval_k=self.retrieval_k,
-                arxiv_id=arxiv_id,
             )
 
             LOGGER.info(
-                "Hybrid retrieval duration=%.3fs",
+                "Uploaded-document retrieval duration=%.3fs",
                 time.perf_counter() - retrieval_start,
             )
 
@@ -957,26 +979,117 @@ class AnswerPipeline:
                 )
 
                 LOGGER.info(
-                    "Reranking duration=%.3fs",
+                    "Uploaded-document reranking duration=%.3fs",
                     time.perf_counter() - rerank_start,
                 )
-            else:
-                LOGGER.warning(
-                    "No retrieval candidates found. Skipping generation."
+
+        else:
+            # Preserve the existing indexed-paper retrieval behavior.
+            self._initialize_retrieval()
+
+            if self.hybrid is None or self.reranker is None:
+                raise RuntimeError(
+                    "Retrieval resource initialization failed."
                 )
+
+            if arxiv_ids is not None:
+                # Retrieve each selected paper independently. This prevents
+                # papers with more indexed passages from dominating retrieval.
+                candidate_groups: list[list[dict[str, Any]]] = []
+
+                for selected_id in arxiv_ids:
+                    LOGGER.info(
+                        "Retrieving follow-up evidence | arxiv_id=%s",
+                        selected_id,
+                    )
+
+                    candidates = self.hybrid.search(
+                        query=retrieval_query,
+                        top_k=self.retrieval_k,
+                        retrieval_k=self.retrieval_k,
+                        arxiv_id=selected_id,
+                    )
+
+                    if not candidates:
+                        LOGGER.warning(
+                            "No follow-up candidates found | arxiv_id=%s",
+                            selected_id,
+                        )
+                        candidate_groups.append([])
+                        continue
+
+                    reranked = self.reranker.rerank(
+                        query=retrieval_query,
+                        candidates=candidates,
+                        top_k=self.top_k,
+                    )
+
+                    candidate_groups.append(reranked)
+
+                # Interleave ranked passages so evidence from each selected
+                # paper gets an opportunity to enter the shared context.
+                ranked_candidates = interleave_candidates(candidate_groups)
+
+                LOGGER.info(
+                    "Multi-paper retrieval completed | papers=%d | "
+                    "ranked_candidates=%d | duration=%.3fs",
+                    len(arxiv_ids),
+                    len(ranked_candidates),
+                    time.perf_counter() - retrieval_start,
+                )
+
+            else:
+                candidates = self.hybrid.search(
+                    query=retrieval_query,
+                    top_k=self.retrieval_k,
+                    retrieval_k=self.retrieval_k,
+                    arxiv_id=arxiv_id,
+                )
+
+                LOGGER.info(
+                    "Hybrid retrieval duration=%.3fs",
+                    time.perf_counter() - retrieval_start,
+                )
+
+                if candidates:
+                    rerank_start = time.perf_counter()
+
+                    ranked_candidates = self.reranker.rerank(
+                        query=retrieval_query,
+                        candidates=candidates,
+                        top_k=self.top_k,
+                    )
+
+                    LOGGER.info(
+                        "Reranking duration=%.3fs",
+                        time.perf_counter() - rerank_start,
+                    )
+                else:
+                    LOGGER.warning(
+                        "No retrieval candidates found. Skipping generation."
+                    )
 
         # ---------------------------------------------------------------
         # Stage 2: Handle missing retrieval evidence
         # ---------------------------------------------------------------
 
         if not ranked_candidates:
-            return AnswerResult(
-                question=question,
-                answer=(
+            if upload_id is not None:
+                fallback_answer = (
+                    "I could not find relevant passages in the uploaded "
+                    "research paper. Therefore, I cannot provide a "
+                    "well-grounded answer to this question."
+                )
+            else:
+                fallback_answer = (
                     "I could not find relevant research passages in the "
                     "current corpus. Therefore, I cannot provide a "
                     "well-grounded answer to this question."
-                ),
+                )
+
+            return AnswerResult(
+                question=question,
+                answer=fallback_answer,
                 citations=[],
                 context_token_count=0,
             )
@@ -991,6 +1104,7 @@ class AnswerPipeline:
             raise RuntimeError("Generator initialization failed.")
 
         # Use the shared generator's tokenizer for accurate context sizing.
+        # ContextBuilder handles both indexed-paper and uploaded-PDF provenance.
         context_builder = ContextBuilder(
             tokenizer=self.generator.tokenizer,
             max_tokens=self.max_context_tokens,
@@ -1065,8 +1179,6 @@ class AnswerPipeline:
             tokens_per_second=generation_result.tokens_per_second,
         )
 
-
-    
     def compare(
         self,
         arxiv_ids: list[str],
@@ -1079,17 +1191,6 @@ class AnswerPipeline:
 
         Existing pipeline resources are reused. GPU-based retrieval resources
         are released before Qwen initializes when retrieval uses CUDA.
-
-        Args:
-            arxiv_ids: Two or three distinct arXiv identifiers.
-
-        Returns:
-            ComparisonResult containing the comparison, validated citations,
-            context size, and generation performance metrics.
-
-        Raises:
-            ValueError: If the selected arXiv identifiers are invalid.
-            RuntimeError: If pipeline resources or generation fail.
         """
 
         if self._closed:
@@ -1285,8 +1386,6 @@ class AnswerPipeline:
         # Stage 5: Validate and resolve generated citations
         # ---------------------------------------------------------------
 
-        # resolve_citations returns BOTH the corrected answer and the evidence
-        # objects referenced by valid numeric citations.
         validated_answer, resolved_citations = resolve_citations(
             answer=generation.text,
             evidence=assembled_context.evidence,
@@ -1341,7 +1440,13 @@ def display_answer(result: AnswerResult) -> None:
 
     for item in result.citations:
         print(f"\n[{item.evidence_id}] {item.title}")
-        print(f"    arXiv: {item.arxiv_id}")
+
+        if item.source_type == "upload":
+            print(f"    Uploaded file: {item.filename or 'Unknown filename'}")
+            print(f"    Upload ID: {item.source_id}")
+        else:
+            print(f"    arXiv: {item.arxiv_id}")
+
         print(f"    Page: {item.page_number}")
         print(f"    Chunk: {item.chunk_id}")
 

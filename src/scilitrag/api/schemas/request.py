@@ -90,6 +90,13 @@ class AskRequest(BaseModel):
         examples=[["2611.17101v1", "2611.16871v1"]],
     )
 
+    upload_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=100,
+        description="Optional upload identifier used to restrict retrieval to one uploaded PDF.",
+    )
+
     history: list[ConversationMessage] = Field(
         default_factory=list,
         max_length=12,
@@ -147,11 +154,16 @@ class AskRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_retrieval_scope(self) -> AskRequest:
-        """Prevent ambiguous requests containing both single- and multi-paper scopes."""
+        """Ensure a request specifies at most one retrieval scope."""
 
-        if self.arxiv_id is not None and self.arxiv_ids is not None:
+        selected_scopes = sum(
+            scope is not None
+            for scope in (self.arxiv_id, self.arxiv_ids, self.upload_id)
+        )
+
+        if selected_scopes > 1:
             raise ValueError(
-                "Specify either arxiv_id or arxiv_ids, not both."
+                "Specify only one retrieval scope: arxiv_id, arxiv_ids, or upload_id."
             )
 
         return self

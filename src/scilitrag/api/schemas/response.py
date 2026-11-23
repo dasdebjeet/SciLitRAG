@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class CitationResponse(BaseModel):
-    """Represent a verified source passage and its paper reference."""
+    """Represent a verified source passage from an indexed or uploaded paper."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -27,14 +27,29 @@ class CitationResponse(BaseModel):
         description="Unique identifier of the source passage.",
     )
 
-    arxiv_id: str = Field(
-        ...,
-        description="arXiv identifier of the source paper.",
+    source_type: str = Field(
+        default="arxiv",
+        description="Source type: arxiv or upload.",
+    )
+
+    source_id: str | None = Field(
+        default=None,
+        description="Identifier of the source paper or uploaded document.",
+    )
+
+    arxiv_id: str | None = Field(
+        default=None,
+        description="arXiv identifier; null for uploaded documents.",
+    )
+
+    filename: str | None = Field(
+        default=None,
+        description="Original filename when the source is an uploaded document.",
     )
 
     title: str = Field(
         ...,
-        description="Title of the source research paper.",
+        description="Title of the source research document.",
     )
 
     page_number: int = Field(
@@ -45,7 +60,7 @@ class CitationResponse(BaseModel):
 
     text: str = Field(
         ...,
-        description="Original evidence passage retrieved from the paper.",
+        description="Original evidence passage retrieved from the document.",
     )
 
     reranker_score: float = Field(
@@ -204,4 +219,42 @@ class CompareResponse(BaseModel):
         ...,
         ge=0,
         description="Total server-side comparison processing time.",
+    )
+
+
+class UploadResponse(BaseModel):
+    """Represent a successfully uploaded and extracted research PDF."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    upload_id: str = Field(
+        ...,
+        description="Opaque identifier used to reference the uploaded document.",
+    )
+
+    filename: str = Field(
+        ...,
+        description="Sanitized original filename.",
+    )
+
+    title: str = Field(
+        ...,
+        description="Document title extracted from PDF metadata or filename.",
+    )
+
+    page_count: int = Field(
+        ...,
+        ge=1,
+        description="Number of pages extracted from the uploaded PDF.",
+    )
+
+    total_characters: int = Field(
+        ...,
+        ge=1,
+        description="Total number of characters extracted from the document.",
+    )
+
+    created_at: str = Field(
+        ...,
+        description="UTC timestamp indicating when the document was stored.",
     )

@@ -10,6 +10,7 @@ Transformers progress bars, and registers the API route modules.
 # CPU Thread Configuration
 # ---------------------------------------------------------------------------
 from __future__ import annotations
+
 import logging
 import os
 
@@ -57,8 +58,7 @@ transformers_logging.disable_progress_bar()
 
 from fastapi import FastAPI
 
-from scilitrag.api.routes import ask, health, papers, compare
-
+from scilitrag.api.routes import ask, compare, health, papers, uploads
 
 # Create the central FastAPI application.
 app = FastAPI(
@@ -95,4 +95,11 @@ app.include_router(
     compare.router,
     prefix="/api/v1",
     tags=["Research"],
+)
+
+# Register isolated research-document upload endpoints.
+app.include_router(
+    uploads.router,
+    prefix="/api/v1",
+    tags=["Uploads"],
 )

@@ -64,6 +64,7 @@ def ask_question(
                 question=request.question,
                 arxiv_id=request.arxiv_id,
                 arxiv_ids=request.arxiv_ids,
+                upload_id=request.upload_id,
                 history=[
                     message.model_dump()
                     for message in request.history
@@ -71,11 +72,15 @@ def ask_question(
             )
 
         # Convert internal evidence records into API response models.
+        # Uploaded-document citations intentionally have no arXiv ID.
         citations = [
             CitationResponse(
                 evidence_id=item.evidence_id,
                 chunk_id=item.chunk_id,
+                source_type=item.source_type,
+                source_id=item.source_id,
                 arxiv_id=item.arxiv_id,
+                filename=item.filename,
                 title=item.title,
                 page_number=item.page_number,
                 text=item.text,
