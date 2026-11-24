@@ -1,5 +1,8 @@
 
-import type { Conversation } from "../types/conversation";
+import type {
+  Conversation,
+  ConversationUploadedDocument,
+} from "../types/conversation";
 
 /**
  * Versioned storage key allows the persisted conversation format
@@ -37,6 +40,33 @@ function isConversationPaper(value: unknown): boolean {
 }
 
 /**
+ * Validates uploaded-document metadata before accepting persisted data.
+ *
+ * The backend upload ID is required to retrieve the correct document.
+ * Display metadata is also validated to prevent malformed composer state.
+ */
+function isConversationUploadedDocument(
+  value: unknown,
+): value is ConversationUploadedDocument {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const document = value as Record<string, unknown>;
+
+  return (
+    typeof document.uploadId === "string" &&
+    document.uploadId.trim().length > 0 &&
+    typeof document.filename === "string" &&
+    document.filename.trim().length > 0 &&
+    typeof document.title === "string" &&
+    typeof document.pageCount === "number" &&
+    Number.isInteger(document.pageCount) &&
+    document.pageCount > 0
+  );
+}
+
+/**
  * Performs basic runtime validation before trusting data loaded from
  * localStorage. TypeScript types alone cannot validate parsed JSON.
  *
@@ -60,6 +90,14 @@ function isConversation(value: unknown): value is Conversation {
       typeof conversation.paperTitle !== "string") ||
     typeof conversation.createdAt !== "string" ||
     typeof conversation.updatedAt !== "string"
+  ) {
+    return false;
+  }
+
+  // Validate uploaded-document metadata only when the property is present.
+  if (
+    conversation.uploadedDocument !== undefined &&
+    !isConversationUploadedDocument(conversation.uploadedDocument)
   ) {
     return false;
   }

@@ -817,6 +817,235 @@
 /* ============================================================
    9. Request status and errors
    ============================================================ */
+/* Research-paper attachment controls */
+.composer-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+}
+
+.composer-attachment-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.question-form-footer .composer-attach-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  box-shadow: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.question-form-footer .composer-attach-button:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  transform: none;
+  box-shadow: none;
+}
+
+.question-form-footer .composer-attach-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.question-form-footer .composer-attach-button svg {
+  width: 19px;
+  height: 19px;
+  transform: none;
+}
+
+.composer-attachment-menu {
+  position: absolute;
+  z-index: 30;
+  bottom: calc(100% + 12px);
+  left: 0;
+  width: 260px;
+  padding: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+}
+
+.composer-attachment-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 11px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.composer-attachment-menu-item:hover:not(:disabled) {
+  background: var(--color-background);
+}
+
+.composer-attachment-menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.composer-attachment-menu-item > svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.composer-attachment-menu-item span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.composer-attachment-menu-item strong {
+  color: var(--color-text);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.composer-attachment-menu-item small {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.uploaded-document-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 11px 13px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.uploaded-document-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgb(220 38 38 / 10%);
+  color: #dc4545;
+}
+
+.uploaded-document-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.uploaded-document-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.uploaded-document-details strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uploaded-document-details span {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+.question-form-footer .uploaded-document-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-muted);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.question-form-footer .uploaded-document-remove:hover {
+  background: rgb(220 38 38 / 10%);
+  color: #dc4545;
+  transform: none;
+  box-shadow: none;
+}
+
+.question-form-footer .uploaded-document-remove svg {
+  width: 17px;
+  height: 17px;
+  transform: none;
+}
+
+.upload-error-message {
+  margin: 0 0 10px;
+  color: var(--color-error);
+  font-size: 0.8rem;
+}
+
+.upload-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+
+.upload-spinner {
+  width: 14px;
+  height: 14px;
+  animation: upload-spin 0.8s linear infinite;
+}
+
+@keyframes upload-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .composer-footer-actions {
+    width: 100%;
+  }
+
+  .composer-attachment-menu {
+    width: min(260px, calc(100vw - 48px));
+  }
+}
 
 .status-message {
   margin: auto 0;
@@ -850,6 +1079,350 @@
   color: var(--color-text-secondary);
   font-size: 14px;
   line-height: 1.7;
+}
+
+
+/* ============================================================
+   Research PDF attachments
+   ============================================================ */
+
+/* Hide the native picker while keeping it available to the browser. */
+.visually-hidden-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Uploaded document preview inside the composer. */
+.uploaded-document-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: fit-content;
+  max-width: 100%;
+  min-width: 220px;
+  box-sizing: border-box;
+  margin: 0 0 13px;
+  padding: 12px 12px;
+
+  background: color-mix(
+    in srgb,
+    var(--color-primary) 6%,
+    var(--color-surface-raised)
+  );
+
+  border: 1px solid var(--color-primary-border);
+  border-radius: 11px;
+}
+
+.uploaded-document-icon {
+  display: grid;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 10px;
+}
+
+.uploaded-document-details {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.uploaded-document-details strong {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uploaded-document-details span {
+  color: var(--color-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Remove action uses the existing destructive-action color. */
+.question-form .uploaded-document-remove {
+  display: grid;
+  flex: 0 0 29px;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  padding: 0;
+
+  color: var(--color-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 15px;
+
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.question-form .uploaded-document-remove:hover:not(:disabled) {
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border-color: var(--color-error-border);
+}
+
+.question-form .uploaded-document-remove:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Indeterminate upload status. */
+.upload-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+
+  color: var(--color-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.upload-spinner {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  animation: upload-spinner-rotation 900ms linear infinite;
+}
+
+@keyframes upload-spinner-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Upload validation and server errors. */
+.upload-error {
+  margin: 0 0 12px;
+  padding: 9px 11px;
+
+  color: var(--color-error);
+  background: var(--color-error-surface);
+  border: 1px solid var(--color-error-border);
+  border-radius: 8px;
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+/* Keep attachment and submit actions together. */
+.composer-footer-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.attachment-menu-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * Override the generic composer button styling specifically for
+ * the attachment control. The Ask button retains its emerald styling.
+ */
+.question-form-footer .composer-attach-button {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  place-items: center;
+  padding: 0;
+
+  color: var(--color-text-secondary);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 50px;
+  box-shadow: none;
+
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    /* transform 160ms ease; */
+}
+
+.question-form-footer .composer-attach-button svg {
+  transform: none;
+  /* transition: transform 160ms ease; */
+}
+
+.question-form-footer .composer-attach-button:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+  box-shadow: none;
+}
+
+.question-form-footer .composer-attach-button svg {
+  transform: none;
+}
+
+.question-form-footer .composer-attach-button:disabled {
+  color: var(--color-muted);
+  background: var(--color-surface-raised);
+  border-color: var(--color-border);
+  box-shadow: none;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Attachment dropdown opens above the composer button. */
+.attachment-menu {
+  position: absolute;
+  z-index: 30;
+  bottom: calc(100% + 12px);
+  left: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  width: 265px;
+  max-width: min(265px, calc(100vw - 40px));
+  padding: 7px;
+
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.question-form-footer .attachment-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+
+  width: 100%;
+  min-height: 54px;
+  padding: 9px 10px;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+
+  text-align: left;
+  cursor: pointer;
+}
+
+.question-form-footer .attachment-menu-item:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+  box-shadow: none;
+  transform: none;
+}
+
+.question-form-footer .attachment-menu-item > svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+  transform: none;
+}
+
+.question-form-footer .attachment-menu-item:hover:not(:disabled) svg {
+  transform: none;
+}
+
+.attachment-menu-item > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.question-form-footer .attachment-menu-item strong {
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.question-form-footer .attachment-menu-item small {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Keyboard accessibility for attachment controls. */
+.question-form .uploaded-document-remove:focus-visible,
+.question-form-footer .composer-attach-button:focus-visible,
+.question-form-footer .attachment-menu-item:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   Responsive attachment controls
+   ============================================================ */
+
+@media (max-width: 560px) {
+  .question-form-footer {
+    align-items: flex-start;
+  }
+
+  .composer-footer-actions {
+    align-self: flex-end;
+  }
+
+  .uploaded-document-preview {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .attachment-menu {
+    right: 0;
+    left: auto;
+  }
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  .upload-spinner,
+  .attachment-menu {
+    animation: none;
+  }
+}
+
+/* Prevent the attachment button from moving on hover. */
+.question-form-footer .composer-attach-button:hover:not(:disabled) {
+  transform: none !important;
+}
+
+.question-form-footer .composer-attach-button,
+.question-form-footer .composer-attach-button > svg {
+  transform: none !important;
 }
 
 /* ============================================================

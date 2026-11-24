@@ -20,27 +20,32 @@ export interface ConversationHistoryMessage {
 /**
  * Payload submitted to POST /api/v1/ask.
  *
- * Retrieval can be unrestricted, scoped to one paper, or scoped to
- * multiple papers for a comparison conversation. The backend rejects
- * requests that specify both single-paper and multi-paper scopes.
+ * Retrieval can be unrestricted, scoped to one indexed paper, scoped
+ * to multiple indexed papers, or scoped to one uploaded PDF.
+ * The backend rejects requests that specify multiple retrieval scopes.
  */
 export interface AskRequest {
   question: string;
   arxiv_id?: string | null;
   arxiv_ids?: string[] | null;
+  upload_id?: string | null;
   history: ConversationHistoryMessage[];
 }
 
 /**
  * One evidence passage returned by the backend.
  *
- * Each citation identifies the source paper and the exact passage
- * used to ground the generated answer.
+ * A citation can originate from the indexed arXiv library or an
+ * uploaded research document. Uploaded-document citations do not
+ * have an arXiv identifier.
  */
 export interface Citation {
   evidence_id: string;
   chunk_id: string;
-  arxiv_id: string;
+  source_type: "arxiv" | "upload";
+  source_id: string | null;
+  arxiv_id: string | null;
+  filename: string | null;
   title: string;
   page_number: number;
   text: string;
@@ -64,6 +69,21 @@ export interface AskResponse {
   generation_duration_seconds?: number | null;
   generation_token_count?: number | null;
   tokens_per_second?: number | null;
+}
+
+/**
+ * Response returned by POST /api/v1/uploads.
+ *
+ * The upload ID is an opaque identifier used to scope subsequent
+ * research questions to this uploaded document.
+ */
+export interface UploadResponse {
+  upload_id: string;
+  filename: string;
+  title: string;
+  page_count: number;
+  total_characters: number;
+  created_at: string;
 }
 
 /**

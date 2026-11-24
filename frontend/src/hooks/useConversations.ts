@@ -5,6 +5,7 @@ import type {
   ChatMessage,
   Conversation,
   ConversationPaper,
+  ConversationUploadedDocument,
 } from "../types/conversation";
 import {
   loadConversations,
@@ -294,6 +295,34 @@ export function useConversations() {
     [],
   );
 
+  /**
+   * Attaches or removes an uploaded PDF from a conversation.
+   *
+   * Passing null removes the uploaded-document scope. The document itself
+   * remains on the backend; this only updates the conversation reference.
+   */
+  const updateUploadedDocument = useCallback(
+    (
+      conversationId: string,
+      uploadedDocument: ConversationUploadedDocument | null,
+    ) => {
+      setConversations((previous) =>
+        sortConversations(
+          previous.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  uploadedDocument: uploadedDocument ?? undefined,
+                  updatedAt: new Date().toISOString(),
+                }
+              : conversation,
+          ),
+        ),
+      );
+    },
+    [],
+  );
+
   /** Deletes a conversation and clears the active selection if necessary. */
   const deleteConversation = useCallback((conversationId: string) => {
     setConversations((previous) =>
@@ -317,6 +346,7 @@ export function useConversations() {
     renameConversation,
     updatePaperScope,
     updateConversationPapers,
+    updateUploadedDocument,
     deleteConversation,
     clearAllConversations,
   };

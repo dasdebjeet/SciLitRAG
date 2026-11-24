@@ -12,8 +12,17 @@ import {
   Clock,
   Cpu,
   Zap,
+  Plus,
+  FileText,
+  LoaderCircle,
 } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 
 // KaTeX styles are required to display formatted mathematical expressions.
 import "katex/dist/katex.min.css";
@@ -31,14 +40,22 @@ import type {
   AssistantMessage,
   UserMessage,
   ConversationPaper,
+  ConversationUploadedDocument,
 } from "./types/conversation";
 
-import { askQuestion, comparePapers } from "./services/api";
+import {
+  askQuestion,
+  comparePapers,
+  uploadResearchPaper,
+} from "./services/api";
 import type { Citation, Paper } from "./types/api";
 
 import "./App.css";
 
 type AppView = "chat" | "library" | "conversations";
+
+// Keep the frontend limit aligned with the backend upload validation.
+const MAX_UPLOAD_SIZE_BYTES = 25 * 1024 * 1024;
 
 /**
  * Create a compact, deterministic preview of a retrieved source passage.
@@ -232,26 +249,46 @@ function AssistantResponse({
                     </div>
 
                     <div className="citation-metadata">
-                      <span>arXiv: {citation.arxiv_id}</span>
-                      <span
-                        className="citation-metadata-separator"
-                        aria-hidden="true"
-                      >
-                        ·
-                      </span>
-                      <span>Page {citation.page_number}</span>
+                      {citation.source_type === "upload" ? (
+                        <>
+                          <span>
+                            PDF: {citation.filename ?? citation.title}
+                          </span>
+                          <span
+                            className="citation-metadata-separator"
+                            aria-hidden="true"
+                          >
+                            ·
+                          </span>
+                          <span>Page {citation.page_number}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>arXiv: {citation.arxiv_id}</span>
+                          <span
+                            className="citation-metadata-separator"
+                            aria-hidden="true"
+                          >
+                            ·
+                          </span>
+                          <span>Page {citation.page_number}</span>
+                        </>
+                      )}
                     </div>
 
-                    <a
-                      className="citation-paper-link"
-                      href={`https://arxiv.org/abs/${encodeURIComponent(
-                        citation.arxiv_id,
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open paper <span aria-hidden="true">↗</span>
-                    </a>
+                    {citation.source_type !== "upload" &&
+                      citation.arxiv_id && (
+                        <a
+                          className="citation-paper-link"
+                          href={`https://arxiv.org/abs/${encodeURIComponent(
+                            citation.arxiv_id,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open paper <span aria-hidden="true">↗</span>
+                        </a>
+                      )}
 
                     <p className="citation-text">
                       {getCitationExcerpt(citation.text)}
@@ -287,6 +324,7 @@ function App() {
     addMessage,
     renameConversation,
     updatePaperScope,
+    updateUploadedDocument,
     deleteConversation,
     clearAllConversations,
   } = useConversations();
@@ -296,6 +334,22 @@ function App() {
 
   // Holds the paper scope for a new, unsaved chat draft.
   const [draftPaper, setDraftPaper] = useState<Paper | null>(null);
+
+  // Holds uploaded-PDF metadata for a new draft or the currently selected chat.
+  const [uploadedDocument, setUploadedDocument] =
+    useState<ConversationUploadedDocument | null>(null);
+
+  // Controls attachment-chip visibility independently of persistent PDF context.
+  const [isUploadedDocumentPreviewVisible, setIsUploadedDocumentPreviewVisible] =
+    useState(true);
+
+  // Controls the attachment menu and the hidden native PDF file picker.
+  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Upload state is separate from question-generation state.
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   // Stores only the paper metadata required by the comparison composer.
   // Full Paper objects are not needed after the initial selection.
@@ -492,9 +546,13 @@ function App() {
   function handleNewChat() {
     selectConversation(null);
     setDraftPaper(null);
+    setUploadedDocument(null);
+    setIsUploadedDocumentPreviewVisible(false);
     setComparisonPapers([]);
     setQuestion("");
     setError("");
+    setUploadError("");
+    setIsAttachmentMenuOpen(false);
     setCurrentView("chat");
   }
 
@@ -509,10 +567,10 @@ function App() {
   }
 
   /**
-   * Restore a saved conversation and its composer paper scope.
+   * Restore a saved conversation and its composer research scope.
    *
-   * The conversation's paper snapshots remain persistent even if the
-   * user subsequently clears the visible composer scope.
+   * Paper snapshots and uploaded-document metadata remain persistent
+   * independently of the Paper Library.
    */
   function handleSelectConversation(conversationId: string) {
     const conversation = conversations.find(
@@ -521,6 +579,12 @@ function App() {
 
     selectConversation(conversationId);
     setDraftPaper(null);
+
+    // Restore the uploaded PDF and show its preview when reopening the chat.
+    setUploadedDocument(conversation?.uploadedDocument ?? null);
+    setIsUploadedDocumentPreviewVisible(
+      Boolean(conversation?.uploadedDocument),
+    );
 
     setComparisonPapers(
       conversation?.papers?.map((paper) => ({
@@ -531,6 +595,8 @@ function App() {
 
     setQuestion("");
     setError("");
+    setUploadError("");
+    setIsAttachmentMenuOpen(false);
     setCurrentView("chat");
   }
 
@@ -543,9 +609,13 @@ function App() {
   function handleStartResearch(paper: Paper) {
     selectConversation(null);
     setDraftPaper(paper);
+    setUploadedDocument(null);
+    setIsUploadedDocumentPreviewVisible(false);
     setComparisonPapers([]);
     setQuestion("");
     setError("");
+    setUploadError("");
+    setIsAttachmentMenuOpen(false);
     setCurrentView("chat");
   }
 
@@ -570,6 +640,8 @@ function App() {
     const conversation = createComparisonConversation(paperSnapshots);
 
     setDraftPaper(null);
+    setUploadedDocument(null);
+    setIsUploadedDocumentPreviewVisible(false);
     setComparisonPapers(
       paperSnapshots.map((paper) => ({
         arxiv_id: paper.arxivId,
@@ -578,6 +650,8 @@ function App() {
     );
     setQuestion("");
     setError("");
+    setUploadError("");
+    setIsAttachmentMenuOpen(false);
     setCurrentView("chat");
     setIsLoading(true);
 
@@ -661,7 +735,7 @@ function App() {
     const trimmedQuestion = question.trim();
 
     // Do not submit empty questions or overlapping requests.
-    if (!trimmedQuestion || isLoading) {
+    if (!trimmedQuestion || isLoading || isUploadingDocument) {
       return;
     }
 
@@ -677,6 +751,18 @@ function App() {
         selectedPaper?.arxiv_id ?? null,
         selectedPaper?.title ?? null,
       );
+
+    // Preserve the upload ID even when its visible attachment preview is hidden.
+    const conversationUploadedDocument =
+      conversation.uploadedDocument ?? uploadedDocument;
+
+    if (
+      !conversation.uploadedDocument &&
+      uploadedDocument &&
+      !activeConversation
+    ) {
+      updateUploadedDocument(conversation.id, uploadedDocument);
+    }
 
     // The draft has now become a persisted conversation.
     setDraftPaper(null);
@@ -706,17 +792,23 @@ function App() {
     setError("");
 
     try {
-      // Use the persistent conversation scope for retrieval.
-      // Clearing the visible composer chips must not remove comparison scope.
+      // Retrieval scopes are mutually exclusive. An uploaded document takes
+      // precedence over indexed-paper retrieval for this conversation.
       const result = await askQuestion({
         question: trimmedQuestion,
-        ...(conversation.papers?.length
+        ...(conversationUploadedDocument
           ? {
-              arxiv_ids: conversation.papers.map((paper) => paper.arxivId),
+              upload_id: conversationUploadedDocument.uploadId,
             }
-          : {
-              arxiv_id: conversation.arxivId,
-            }),
+          : conversation.papers?.length
+            ? {
+                arxiv_ids: conversation.papers.map(
+                  (paper) => paper.arxivId,
+                ),
+              }
+            : {
+                arxiv_id: conversation.arxivId,
+              }),
         history,
       });
 
@@ -754,6 +846,113 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  /**
+   * Upload a selected PDF and associate its metadata with the current chat.
+   *
+   * Uploaded files are stored by the backend. The conversation stores only
+   * the opaque upload ID and display metadata needed to reuse that document.
+   */
+  async function handleUploadFileChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const file = event.currentTarget.files?.[0];
+
+    // Reset the input so the same file can be selected again after an error.
+    event.currentTarget.value = "";
+
+    if (!file || isUploadingDocument || isLoading) {
+      return;
+    }
+
+    setUploadError("");
+
+    // A conversation must use either an indexed-paper scope or an uploaded PDF.
+    if (scopePapers.length > 0 || activeConversation?.papers?.length) {
+      setUploadError(
+        "Remove the current paper scope before uploading a PDF.",
+      );
+      return;
+    }
+
+    if (selectedPaper) {
+      setUploadError(
+        "Remove the selected paper filter before uploading a PDF.",
+      );
+      return;
+    }
+
+    if (uploadedDocument) {
+      setUploadError(
+        "This conversation already has an uploaded PDF. Remove it before uploading another.",
+      );
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      setUploadError("Only PDF files are supported.");
+      return;
+    }
+
+    if (file.size === 0) {
+      setUploadError("The selected file is empty.");
+      return;
+    }
+
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+      setUploadError("The PDF exceeds the 25 MB upload limit.");
+      return;
+    }
+
+    setIsUploadingDocument(true);
+    setIsAttachmentMenuOpen(false);
+
+    try {
+      const result = await uploadResearchPaper(file);
+
+      const document: ConversationUploadedDocument = {
+        uploadId: result.upload_id,
+        filename: result.filename,
+        title: result.title,
+        pageCount: result.page_count,
+      };
+
+      // Save immediately when attaching to an existing conversation.
+      // New drafts are persisted when their first question is submitted.
+      if (activeConversationId) {
+        updateUploadedDocument(activeConversationId, document);
+      }
+
+      setUploadedDocument(document);
+
+      // A newly uploaded document should always have a visible preview.
+      setIsUploadedDocumentPreviewVisible(true);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error
+          ? err.message
+          : "The PDF could not be uploaded. Please try again.",
+      );
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  }
+
+  /**
+   * Hide the uploaded PDF attachment preview without removing the document
+   * from the conversation's persistent retrieval scope.
+   *
+   * The upload ID remains associated with the conversation so subsequent
+   * questions continue retrieving evidence from the same uploaded PDF.
+   */
+  function handleRemoveUploadedDocument() {
+    if (isLoading || isUploadingDocument) {
+      return;
+    }
+
+    setIsUploadedDocumentPreviewVisible(false);
+    setUploadError("");
   }
 
   return (
@@ -818,6 +1017,7 @@ function App() {
             {/* Show the welcome state only for a genuinely empty conversation. */}
             {(!activeConversation || activeConversation.messages.length === 0) &&
               comparisonPapers.length === 0 &&
+              !uploadedDocument &&
               !isLoading &&
               !error && (
                 <div className="welcome-section">
@@ -939,6 +1139,64 @@ function App() {
                 </div>
               )}
 
+              {/* Hidden native picker; the attachment button opens it. */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,application/pdf"
+                className="visually-hidden-file-input"
+                onChange={handleUploadFileChange}
+                disabled={isUploadingDocument || isLoading}
+                tabIndex={-1}
+                aria-label="Choose a research PDF"
+              />
+
+              {/* Hiding this preview does not remove the persistent PDF context. */}
+              {uploadedDocument && isUploadedDocumentPreviewVisible && (
+                <div className="uploaded-document-preview">
+                  <div className="uploaded-document-icon" aria-hidden="true">
+                    <FileText size={20} strokeWidth={1.8} />
+                  </div>
+
+                  <div className="uploaded-document-details">
+                    <strong title={uploadedDocument.filename}>
+                      {uploadedDocument.filename}
+                    </strong>
+                    <span>
+                      PDF · {uploadedDocument.pageCount} pages
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="uploaded-document-remove"
+                    onClick={handleRemoveUploadedDocument}
+                    disabled={isLoading || isUploadingDocument}
+                    aria-label="Hide uploaded PDF attachment"
+                    title="Hide attachment preview"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+
+              {isUploadingDocument && (
+                <div className="upload-status" role="status">
+                  <LoaderCircle
+                    size={15}
+                    className="upload-spinner"
+                    aria-hidden="true"
+                  />
+                  <span>Uploading and processing PDF...</span>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="upload-error-message" role="alert">
+                  {uploadError}
+                </div>
+              )}
+
               <div
                 ref={questionEditorRef}
                 className="question-editor"
@@ -949,9 +1207,11 @@ function App() {
                 aria-multiline="true"
                 aria-disabled={isLoading}
                 data-placeholder={
-                  selectedPaper
-                    ? "Ask a question about this paper..."
-                    : "Ask a question about scientific research..."
+                  uploadedDocument
+                    ? "Ask a question about the uploaded PDF..."
+                    : selectedPaper
+                      ? "Ask a question about this paper..."
+                      : "Ask a question about scientific research..."
                 }
                 onInput={(event) =>
                   setQuestion(event.currentTarget.innerText)
@@ -971,27 +1231,95 @@ function App() {
               />
 
               <div className="question-form-footer">
-                <span>
-                  {isComparisonScope
-                    ? "Follow-up questions use evidence from all papers in this comparison."
-                    : selectedPaper
-                      ? "Research is restricted to the selected paper."
-                      : "Answers are grounded in the scientific literature indexed by SciLitRAG."}
-                </span>
+                <div className="composer-footer-actions">
+                  {/* Attachment control comes first in the bottom toolbar. */}
+                  <div className="attachment-menu-wrapper">
+                    <button
+                      type="button"
+                      className="composer-attach-button"
+                      onClick={() => {
+                        setUploadError("");
+                        setIsAttachmentMenuOpen((open) => !open);
+                      }}
+                      disabled={
+                        isLoading ||
+                        isUploadingDocument ||
+                        Boolean(uploadedDocument) ||
+                        scopePapers.length > 0 ||
+                        Boolean(activeConversation?.papers?.length)
+                      }
+                      aria-label="Add an attachment"
+                      aria-expanded={isAttachmentMenuOpen}
+                      title="Add an attachment"
+                    >
+                      <Plus size={19} strokeWidth={2} />
+                    </button>
 
-                <button
-                  type="submit"
-                  disabled={!question.trim() || isLoading}
-                >
+                    {isAttachmentMenuOpen && (
+                      <div className="attachment-menu">
+                        <button
+                          type="button"
+                          className="attachment-menu-item"
+                          onClick={() => {
+                            setIsAttachmentMenuOpen(false);
+                            fileInputRef.current?.click();
+                          }}
+                        >
+                          <FileText size={17} />
+                          <span>
+                            <strong>Upload research paper</strong>
+                            <small>Attach a PDF up to 25 MB</small>
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="attachment-menu-item"
+                          onClick={() => {
+                            setIsAttachmentMenuOpen(false);
+                            handleShowLibrary();
+                          }}
+                        >
+                          <BookOpen size={17} />
+                          <span>
+                            <strong>Browse Paper Library</strong>
+                            <small>Explore indexed research papers</small>
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Grounding text now sits between attachment and submit controls. */}
                   <span>
-                    {isLoading
-                      ? isComparisonScope
-                        ? "Comparing..."
-                        : "Researching..."
-                      : "Ask question"}
+                    {isComparisonScope
+                      ? "Follow-up questions use evidence from all papers in this comparison."
+                      : uploadedDocument
+                        ? "Research is restricted to the uploaded PDF."
+                        : selectedPaper
+                          ? "Research is restricted to the selected paper."
+                          : "Answers are grounded in the scientific literature indexed by SciLitRAG."}
                   </span>
-                  <ArrowRight size={14} strokeWidth={2} />
-                </button>
+
+                  {/* Keep the question submission action at the far end. */}
+                  <button
+                    type="submit"
+                    disabled={
+                      !question.trim() ||
+                      isLoading ||
+                      isUploadingDocument
+                    }
+                  >
+                    <span>
+                      {isLoading
+                        ? isComparisonScope
+                          ? "Comparing..."
+                          : "Researching..."
+                        : "Ask question"}
+                    </span>
+                    <ArrowRight size={14} strokeWidth={2} />
+                  </button>
+                </div>
               </div>
             </form>
           </section>

@@ -13,6 +13,19 @@ export interface ConversationPaper {
 }
 
 /**
+ * Metadata for a PDF uploaded specifically to a research conversation.
+ *
+ * The PDF itself remains on the backend. Only its identifier and display
+ * metadata are persisted in browser storage.
+ */
+export interface ConversationUploadedDocument {
+  uploadId: string;
+  filename: string;
+  title: string;
+  pageCount: number;
+}
+
+/**
  * A message submitted by the user.
  *
  * Evidence belongs to the assistant response, not the user message.
@@ -65,6 +78,9 @@ export interface Conversation {
   // Legacy single-paper metadata; retained for existing conversations.
   arxivId: string | null;
   paperTitle: string | null;
+
+  // Optional uploaded-PDF scope, independent of the global Paper Library.
+  uploadedDocument?: ConversationUploadedDocument;
 
   // Complete research scope for multi-paper conversations.
   papers?: ConversationPaper[];
