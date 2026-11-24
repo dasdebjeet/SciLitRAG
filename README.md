@@ -15,7 +15,7 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 <img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
 <img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
 
-<br><br>
+<br/>
 
 [Features](#key-features) &nbsp;·&nbsp;
 [Architecture](#system-architecture) &nbsp;·&nbsp;
@@ -24,6 +24,7 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 [API](#api-reference) &nbsp;·&nbsp;
 [Evaluation](#evaluation)
 
+<br>
 
 <img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
 
