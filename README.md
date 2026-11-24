@@ -556,6 +556,8 @@ Explore the detailed documentation for the architecture, retrieval pipeline, set
 
 SciLitRAG builds upon several open-source technologies and pretrained models, including Qdrant, PyTorch, FastAPI, BAAI embedding and reranking models, and Qwen. Their contributions make it possible to build an end-to-end research assistant from locally hosted machine learning components.
 
+---
+
 <div align="center">
 
 **SciLitRAG** — Making scientific literature easier to search, explore, and understand.
