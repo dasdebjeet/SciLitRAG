@@ -2,9 +2,9 @@
 
 # SciLitRAG
 
-### Ask questions. Get answers grounded in research papers.
+**Ask questions. Get answers grounded in research papers.**
 
-Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally hosted LLM
+Hybrid retrieval · Cross-encoder reranking · Locally hosted LLM
 
 <p>
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12" />
@@ -15,14 +15,10 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
   <img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
 </p>
 
-[Features](#key-features) &nbsp;·&nbsp;
-[Architecture](#system-architecture) &nbsp;·&nbsp;
-[Pipeline](#rag-pipeline) &nbsp;·&nbsp;
-[Installation](#installation) &nbsp;·&nbsp;
-[API](#api-reference) &nbsp;·&nbsp;
-[Evaluation](#evaluation)
+[Features](#key-features) · [Architecture](#system-architecture) · [Pipeline](#rag-pipeline) · [Installation](#installation) · [API](#api-reference) · [Evaluation](#evaluation) · [Documentation](#documentation)
 
 <br>
+
 <img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
 
 <table border="0" cellspacing="0" cellpadding="8">
@@ -46,54 +42,57 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 
 <br>
 
-SciLitRAG is a research-paper question-answering system built to make scientific literature easier to explore. It combines sparse and dense retrieval, Reciprocal Rank Fusion (RRF), cross-encoder reranking, and a locally hosted language model to generate answers **grounded in retrieved evidence**.
+**SciLitRAG** is a research-paper question-answering system built to make scientific literature easier to explore. It combines sparse and dense retrieval, Reciprocal Rank Fusion (RRF), cross-encoder reranking, and a locally hosted language model to generate answers grounded in retrieved evidence.
 
-The project implements an end-to-end Retrieval-Augmented Generation (RAG) workflow, from paper ingestion and indexing to contextual retrieval and conversational question answering. Rather than relying on semantic similarity alone, SciLitRAG blends complementary retrieval strategies and reranks candidate passages before anything reaches the language model.
+The project implements an end-to-end **Retrieval-Augmented Generation (RAG)** workflow, from paper ingestion and indexing to contextual retrieval and conversational question answering. Rather than relying on semantic similarity alone, SciLitRAG blends complementary retrieval strategies and reranks candidate passages before anything reaches the language model.
 
-## At a Glance
+### At a Glance
 
-| | |
-|---|---|
-| **Retrieval** | BM25 (sparse) + BAAI/bge-m3 (dense) fused with RRF |
-| **Reranking** | BAAI/bge-reranker-v2-m3 cross-encoder |
-| **Generation** | Local Qwen3-14B, no third-party LLM API required |
-| **Vector store** | Qdrant |
+| Aspect | Details |
+| :--- | :--- |
+| **Retrieval** | BM25 (sparse) + `BAAI/bge-m3` (dense) fused with Reciprocal Rank Fusion (RRF) |
+| **Reranking** | `BAAI/bge-reranker-v2-m3` cross-encoder |
+| **Generation** | Local `Qwen3-14B` — no third-party LLM API required |
+| **Vector Store** | Qdrant |
 | **Backend / Frontend** | FastAPI · React + TypeScript + Vite |
-| **Interaction** | Multi-turn chat, paper comparison, PDF upload (up to 25 MB) |
+| **Interaction** | Multi-turn chat, paper comparison, PDF upload (up to **25 MB**) |
 | **Verification** | Source citations with excerpts and arXiv links where available |
+
+---
 
 ## Overview
 
-Scientific papers hold valuable information, but finding relevant evidence across many documents is slow. Keyword search can miss semantically relevant passages, and standalone language models can produce unsupported or fabricated claims. SciLitRAG addresses both with a **retrieval-first architecture**:
+Scientific papers hold valuable information, but finding relevant evidence across many documents is slow. Keyword search can miss semantically relevant passages, and standalone language models can produce unsupported or fabricated claims. SciLitRAG addresses both with a retrieval-first architecture:
 
-1. **Retrieve** passages using both lexical and semantic search.
-2. **Fuse** the rankings with Reciprocal Rank Fusion.
-3. **Rerank** candidates with a cross-encoder.
-4. **Select** the most relevant evidence to build the generation context.
-5. **Generate** an evidence-grounded answer with a local language model.
-6. **Cite** sources so every answer can be verified.
+1. Retrieve passages using both lexical and semantic search.
+2. Fuse the rankings with Reciprocal Rank Fusion.
+3. Rerank candidates with a cross-encoder.
+4. Select the most relevant evidence to build the generation context.
+5. Generate an evidence-grounded answer with a local language model.
+6. Cite sources so every answer can be verified.
+
+---
 
 ## Key Features
 
 SciLitRAG pairs a hybrid retrieval pipeline with a conversational interface, so answers stay tied to the papers they come from.
 
 ### Retrieval and Ranking
-
 - **Hybrid retrieval:** BM25 matches passages by lexical relevance and exact terminology, while dense retrieval finds conceptually related passages through semantic embeddings. Reciprocal Rank Fusion (RRF) merges both rankings into a stronger candidate set.
-- **Cross-encoder reranking:** A second-stage cross-encoder scores query-passage relevance jointly, rather than relying only on independent embedding similarity, to refine the initial results.
-- **Evidence-grounded generation:** Retrieved passages are assembled into the model's context, which is designed to prioritize that evidence and to return source references for inspection.
+- **Cross-encoder reranking:** A second-stage cross-encoder scores query–passage relevance jointly, rather than relying only on independent embedding similarity, to refine the initial results.
+- **Evidence-grounded generation:** Retrieved passages are assembled into the model's context, which is designed to prioritize that evidence and return source references for inspection.
 
 ### Conversation and Documents
-
 - **Multi-turn conversations:** Ask follow-up questions in an ongoing session. Conversation history is passed into the question-answering workflow to preserve context.
 - **Paper comparison:** Select multiple indexed papers and ask questions that require comparing their content.
 - **PDF uploads:** Upload a research PDF and use it as the document scope for a conversation, with no need for it to be in the pre-indexed collection. Uploads are limited to **25 MB** per PDF.
 - **Persistent chat history:** Conversations are saved in the frontend so you can revisit them at any time.
 
 ### Transparency and Deployment
-
 - **Source citations:** Responses can include the retrieved passages, supporting excerpts, and links to the corresponding arXiv papers where available.
-- **Local inference:** Generation runs on a locally hosted **Qwen3-14B** model, so you do not depend on a third-party LLM API.
+- **Local inference:** Generation runs on a locally hosted `Qwen3-14B` model, so you do not depend on a third-party LLM API.
+
+---
 
 ## System Architecture
 
@@ -131,7 +130,7 @@ flowchart TB
 ### Main Components
 
 | Component | Responsibility |
-|---|---|
+| :--- | :--- |
 | **React Frontend** | UI, conversations, paper selection, uploads, answer rendering |
 | **FastAPI** | HTTP API and application orchestration |
 | **BM25 Retriever** | Lexical retrieval |
@@ -142,6 +141,7 @@ flowchart TB
 | **Context Builder** | Selects and assembles evidence for generation |
 | **Qwen3-14B** | Locally hosted response generation |
 
+---
 
 ## RAG Pipeline
 
@@ -163,13 +163,13 @@ flowchart TD
     F --> I["BM25 Index Preparation"]
 ```
 
-- Fetch research papers from arXiv
-- Validate downloaded PDFs
-- Extract text and document metadata
-- Split content into smaller passages
-- Generate dense embeddings with **BAAI/bge-m3**
-- Index vectors and metadata in **Qdrant**
-- Prepare the lexical data used by **BM25**
+- Fetch research papers from arXiv.
+- Validate downloaded PDFs.
+- Extract text and document metadata.
+- Split content into smaller passages.
+- Generate dense embeddings with `BAAI/bge-m3`.
+- Index vectors and metadata in Qdrant.
+- Prepare the lexical data used by BM25.
 
 ### 2. Online Retrieval & Generation
 
@@ -196,38 +196,38 @@ flowchart TD
 ### Retrieval Strategy
 
 | Stage | Technique | Purpose |
-|---|---|---|
-| **Sparse retrieval** | BM25 | Lexical matching, which is useful for specific terminology, technical expressions, and named concepts |
-| **Dense retrieval** | BAAI/bge-m3 | Semantic matching that finds relevant content even when wording differs from the query |
+| :--- | :--- | :--- |
+| **Sparse retrieval** | BM25 | Lexical matching, useful for specific terminology, technical expressions, and named concepts |
+| **Dense retrieval** | `BAAI/bge-m3` | Semantic matching that finds relevant content even when wording differs from the query |
 | **Rank fusion** | Reciprocal Rank Fusion | Combines the sparse and dense rankings |
-| **Reranking** | BAAI/bge-reranker-v2-m3 | Scores query–passage pairs to refine the candidate ranking |
+| **Reranking** | `BAAI/bge-reranker-v2-m3` | Scores query–passage pairs to refine the candidate ranking |
 | **Context selection** | Adaptive selection | Chooses relevant passages within the available context budget |
-| **Generation** | Qwen3-14B | Formulates a response from the selected evidence |
+| **Generation** | `Qwen3-14B` | Formulates a response from the selected evidence |
 
+---
 
 ## Technology Stack
 
 | Category | Technology |
-|---|---|
+| :--- | :--- |
 | **Language** | Python 3.12 |
-| **Environment & dependencies** | uv |
+| **Environment & dependencies** | `uv` |
 | **Backend** | FastAPI, Uvicorn |
 | **Frontend** | React, TypeScript, Vite |
 | **Document processing** | PyMuPDF |
 | **Sparse retrieval** | BM25 |
-| **Embedding model** | BAAI/bge-m3 |
+| **Embedding model** | `BAAI/bge-m3` |
 | **Vector database** | Qdrant |
 | **Rank fusion** | Reciprocal Rank Fusion |
-| **Reranking model** | BAAI/bge-reranker-v2-m3 |
-| **Language model** | Qwen3-14B |
+| **Reranking model** | `BAAI/bge-reranker-v2-m3` |
+| **Language model** | `Qwen3-14B` |
 | **Deep learning** | PyTorch, Transformers |
 | **GPU acceleration** | CUDA |
 | **Infrastructure** | Docker Desktop |
 
+---
 
 ## Project Structure
-
-<br/>
 
 ```text
 SciLitRAG/
@@ -238,6 +238,15 @@ SciLitRAG/
 │   ├── metadata/               # Paper and processing metadata
 │   └── evaluation/             # Evaluation datasets and results
 │
+├── docs/
+│   ├── images/                 # README screenshots
+│   ├── ARCHITECTURE.md
+│   ├── RAG_PIPELINE.md
+│   ├── API_REFERENCE.md
+│   ├── SETUP.md
+│   ├── DEVELOPMENT.md
+│   └── EVALUATION.md
+│
 ├── src/
 │   └── scilitrag/
 │       ├── api/                # FastAPI application and endpoints
@@ -247,10 +256,8 @@ SciLitRAG/
 │       │   ├── dense_retriever.py
 │       │   ├── hybrid_retriever.py
 │       │   └── reranker.py
-│       │
 │       ├── generation/
 │       │   └── generator.py
-│       │
 │       └── pipeline/
 │           ├── answer_pipeline.py
 │           └── context_builder.py
@@ -272,27 +279,30 @@ SciLitRAG/
 └── README.md
 ```
 
+---
 
 ## Installation
 
 ### Prerequisites
 
-- Windows 11 with WSL2 and Ubuntu
-- Python 3.12
-- [uv](https://github.com/astral-sh/uv) package manager
-- Node.js and npm
-- Docker Desktop
-- A CUDA-compatible NVIDIA GPU with appropriate drivers (for GPU-accelerated inference)
-- A local inference runtime with the configured Qwen3-14B model available
+- Windows 11 with WSL2 and Ubuntu.
+- Python 3.12.
+- `uv` package manager.
+- Node.js and npm.
+- Docker Desktop.
+- A CUDA-compatible NVIDIA GPU with appropriate drivers (for GPU-accelerated inference).
+- A local inference runtime with the configured `Qwen3-14B` model available.
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/dasdebjeet/SciLitRAG.git
+git clone [https://github.com/dasdebjeet/SciLitRAG.git](https://github.com/dasdebjeet/SciLitRAG.git)
 cd SciLitRAG
 ```
 
 ### 2. Install Python dependencies
+
+From the project root:
 
 ```bash
 uv sync
@@ -305,15 +315,18 @@ cd frontend
 npm install
 ```
 
-### 4. Configure environment variables
+### 4. Configure the application
 
-Create the environment configuration using the project's expected variable names and values. Make sure the backend can reach:
+Configure the application using the settings expected by the project. Ensure that the backend can reach:
 
-- Qdrant
-- The local language model runtime
-- Required model and data directories
-- Any application-specific configuration
+- Qdrant at the configured endpoint.
+- The local language model runtime.
+- Required model and data directories.
+- Any application-specific configuration.
 
+Refer to the [Setup Guide](docs/SETUP.md) for configuration guidance and additional setup details. Do not commit credentials, secrets, or machine-specific configuration.
+
+---
 
 ## Running the Application
 
@@ -321,15 +334,17 @@ SciLitRAG runs as separate frontend and backend development servers, with Qdrant
 
 ### 1. Start Docker Desktop
 
-Launch Docker Desktop and wait until the Docker Engine is running. Qdrant should then be available at `http://localhost:16333`.
+Launch Docker Desktop and wait until the Docker Engine is running. Qdrant should then be available at:
 
-If the database is unavailable, verify the container is running:
+`http://localhost:16333`
+
+If the database is unavailable, verify that the container is running:
 
 ```bash
 docker ps
 ```
 
-If it isn't, inspect `compose.yaml` and start the configured service.
+If it isn't, inspect `compose.yaml` and start the configured service from the project root.
 
 ### 2. Start the backend
 
@@ -337,7 +352,6 @@ In a WSL terminal:
 
 ```bash
 cd /mnt/d/SciLitRAG
-
 uv run uvicorn src.scilitrag.api.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -347,31 +361,31 @@ In a second WSL terminal:
 
 ```bash
 cd /mnt/d/SciLitRAG/frontend
-
 npm run dev -- --host 0.0.0.0
 ```
 
 ### Development Services
 
 | Service | Address |
-|---|---|
-| React / Vite Frontend | `http://localhost:5173` |
-| FastAPI Backend | `http://127.0.0.1:8000` |
-| Swagger Documentation | `http://127.0.0.1:8000/docs` |
-| Qdrant | `http://localhost:16333` |
+| :--- | :--- |
+| **React / Vite Frontend** | `http://localhost:5173` |
+| **FastAPI Backend** | `http://127.0.0.1:8000` |
+| **Swagger Documentation** | `http://127.0.0.1:8000/docs` |
+| **Qdrant** | `http://localhost:16333` |
 
-<br>
+> **Note:** The local language model runtime must also be running and reachable using the configuration expected by the backend.
+>
+> **Development note:** The Vite command binds to `0.0.0.0`, allowing access through network interfaces. Use it only in a trusted development environment.
 
-> [!NOTE]
-> The local language model runtime must also be running and reachable using the configuration the backend expects.
+For detailed setup instructions and troubleshooting, see [Setup Guide](docs/SETUP.md).
 
+---
 
 ## Using SciLitRAG
 
 <details open>
 <summary><b>Ask questions about research papers</b></summary>
-
-<br/>
+<br>
 
 1. Open the frontend in your browser.
 2. Start a new conversation.
@@ -384,8 +398,7 @@ npm run dev -- --host 0.0.0.0
 
 <details>
 <summary><b>Compare research papers</b></summary>
-
-<br/>
+<br>
 
 1. Open the paper selection interface.
 2. Select the papers you want to compare.
@@ -398,8 +411,7 @@ Useful for questions about similarities, differences, methodologies, findings, a
 
 <details>
 <summary><b>Upload a research paper</b></summary>
-
-<br/>
+<br>
 
 1. Start or open a conversation.
 2. Upload a PDF (up to **25 MB**).
@@ -410,56 +422,49 @@ Useful for questions about similarities, differences, methodologies, findings, a
 
 <details>
 <summary><b>Review previous conversations</b></summary>
-
-<br/>
+<br>
 
 Saved conversations are available through the conversation interface. The application also provides a paper library and theme preferences.
 
 </details>
 
+---
 
 ## API Reference
 
-SciLitRAG exposes its functionality through a REST API built with FastAPI. The endpoints are organized into three groups: Health, Research, and Uploads.
+SciLitRAG exposes its functionality through a REST API built with FastAPI. The endpoints are organized into three groups: **Health**, **Research**, and **Uploads**.
 
 ### Health
 
-These endpoints provide application health and readiness information.
-
 | Method | Endpoint | Description |
-|:---:|---|---|
+| :--- | :--- | :--- |
 | `GET` | `/health` | Check API liveness |
 | `GET` | `/health/ready` | Check API readiness |
 
 ### Research
 
-These endpoints support research question answering, paper discovery, and comparative analysis.
-
 | Method | Endpoint | Description |
-|:---:|---|---|
+| :--- | :--- | :--- |
 | `POST` | `/api/v1/ask` | Answer a research question |
 | `GET` | `/api/v1/papers` | List available research papers |
 | `POST` | `/api/v1/compare` | Compare research papers |
 
 ### Uploads
 
-This endpoint allows users to upload research documents.
-
 | Method | Endpoint | Description |
-|:---:|---|---|
+| :--- | :--- | :--- |
 | `POST` | `/api/v1/uploads` | Upload a research paper |
 
 ### Interactive API Documentation
 
-FastAPI automatically generates interactive API documentation using OpenAPI and Swagger UI.
+FastAPI automatically generates interactive API documentation using OpenAPI and Swagger UI. After starting the backend, access:
 
-After starting the backend, access:
+- **Swagger UI:** `http://127.0.0.1:8000/docs`
+- **OpenAPI schema:** `http://127.0.0.1:8000/openapi.json`
 
-- **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- **OpenAPI schema:** [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+Swagger UI provides the request schemas, parameters, response models, and an interface for testing the available endpoints directly. For additional endpoint documentation, see [API Reference](docs/API_REFERENCE.md).
 
-Swagger UI provides the request schemas, parameters, response models, and an interface for testing the available endpoints directly.
-
+---
 
 ## Evaluation
 
@@ -470,14 +475,14 @@ SciLitRAG was evaluated on a manually verified benchmark of **15 research questi
 Hybrid retrieval compared with the reranked results:
 
 | Metric | Hybrid Retrieval | After Reranking |
-|---|---:|---:|
-| Paper Recall@5 | 1.000 | 1.000 |
-| Paper Recall@10 | 1.000 | 1.000 |
-| Paper MRR@10 | 1.000 | 1.000 |
-| Paper nDCG@5 | 1.000 | 1.000 |
-| Chunk Recall@10 | 0.7086 | **0.7560** |
-| Chunk MRR@10 | 0.6564 | **0.7564** |
-| Chunk nDCG@5 | 0.5510 | **0.5771** |
+| :--- | :---: | :---: |
+| **Paper Recall@5** | 1.000 | 1.000 |
+| **Paper Recall@10** | 1.000 | 1.000 |
+| **Paper MRR@10** | 1.000 | 1.000 |
+| **Paper nDCG@5** | 1.000 | 1.000 |
+| **Chunk Recall@10** | 0.7086 | **0.7560** |
+| **Chunk MRR@10** | 0.6564 | **0.7564** |
+| **Chunk nDCG@5** | 0.5510 | **0.5771** |
 
 The relevant paper was consistently retrieved within the evaluated cutoffs. At the chunk level, reranking improved the measured metrics, particularly MRR@10, highlighting the difference between finding the right paper and finding the most relevant passages within it.
 
@@ -486,35 +491,30 @@ The relevant paper was consistently retrieved within the evaluated cutoffs. At t
 Adaptive context selection compared with a fixed top-10 policy:
 
 | Metric | Adaptive Selection | Fixed Top-10 |
-|---|---:|---:|
-| Average context tokens | **3,502** | 4,711 |
-| Average selected passages | **7.54** | 10 |
+| :--- | :---: | :---: |
+| **Average context tokens** | **3,502** | 4,711 |
+| **Average selected passages** | **7.54** | 10 |
 
 Adaptive selection used approximately **25.7% fewer context tokens** in this evaluation, suggesting that choosing a smaller set of relevant passages can reduce context size without relying on a fixed passage count.
 
-<br>
-
-> [!NOTE]
-> These results are specific to the evaluated benchmark and do not establish that adaptive selection is universally optimal.
+> **Note:** These results are specific to the evaluated benchmark and do not establish that adaptive selection is universally optimal.
 
 ### 3. Answer Quality
 
-A manual review covered eight generated answers (four research questions × two context selection policies). The reviewed answers were generally sound in the evaluated examples.
+A manual review covered **eight generated answers** (4 research questions × 2 context selection policies). The reviewed answers were generally sound in the evaluated examples.
 
-<br>
-
-> [!IMPORTANT]
-> The answer-quality evaluation is limited in size. A larger benchmark and more systematic evaluation are needed before making broader claims about answer correctness, factual consistency, or hallucination resistance.
+> **Important:** The answer-quality evaluation is limited in size. A larger benchmark and more systematic evaluation are needed before making broader claims about answer correctness, factual consistency, or hallucination resistance.
 
 ### Evaluation Scope
 
-The current evaluation is an initial assessment of the pipeline. Results should be read in the context of the benchmark size and methodology, and are not a substitute for large-scale or domain-expert validation.
+The current evaluation is an initial assessment of the pipeline. Results should be read in the context of the benchmark size and methodology, and are not a substitute for large-scale or domain-expert validation. For the full methodology, metric definitions, interpretation, and limitations, see [Evaluation](docs/EVALUATION.md).
 
+---
 
 ## Limitations
 
 | Area | Detail |
-|---|---|
+| :--- | :--- |
 | **Evaluation scale** | The benchmark contains only 15 research questions |
 | **Answer-quality validation** | Manual review covers a relatively small number of generated responses |
 | **Document extraction** | PDF extraction quality varies with structure, formatting, tables, and figures |
@@ -523,26 +523,41 @@ The current evaluation is an initial assessment of the pipeline. Results should 
 | **Domain generalization** | Performance across all scientific disciplines has not been established |
 | **Citation verification** | Retrieved references should still be checked against the original papers |
 
+---
+
 ## Future Improvements
 
-- Expand the benchmark with a larger, more diverse set of research questions
-- Introduce more systematic answer-quality and faithfulness evaluation
-- Improve retrieval and context selection through further experiments
-- Evaluate extraction strategies for tables, figures, and complex layouts
-- Explore further inference and reranking optimizations
-- Broaden support for scientific document formats and metadata
-- Improve observability, logging, and performance monitoring
-
-
-## Acknowledgements
-
-SciLitRAG builds upon several open-source technologies and pretrained models, including **Qdrant**, **PyTorch**, **FastAPI**, **BAAI** embedding and reranking models, and **Qwen**. Their contributions make it possible to build an end-to-end research assistant from locally hosted machine learning components.
+- Expand the benchmark with a larger, more diverse set of research questions.
+- Introduce more systematic answer-quality and faithfulness evaluation.
+- Improve retrieval and context selection through further experiments.
+- Evaluate extraction strategies for tables, figures, and complex layouts.
+- Explore further inference and reranking optimizations.
+- Broaden support for scientific document formats and metadata.
+- Improve observability, logging, and performance monitoring.
 
 ---
 
+## Documentation
+
+Explore the detailed documentation for the architecture, retrieval pipeline, setup, development, API, and evaluation:
+
+| Document | Description |
+| :--- | :--- |
+| [System Architecture](docs/ARCHITECTURE.md) | Application components, system design, and interactions |
+| [RAG Pipeline](docs/RAG_PIPELINE.md) | Paper ingestion, hybrid retrieval, reranking, and generation |
+| [API Reference](docs/API_REFERENCE.md) | Backend endpoints and API usage |
+| [Setup Guide](docs/SETUP.md) | Installation, configuration, startup, and troubleshooting |
+| [Development Guide](docs/DEVELOPMENT.md) | Repository structure, testing, debugging, and development |
+| [Evaluation](docs/EVALUATION.md) | Benchmark methodology, retrieval metrics, and results |
+
+---
+
+## Acknowledgements
+
+SciLitRAG builds upon several open-source technologies and pretrained models, including Qdrant, PyTorch, FastAPI, BAAI embedding and reranking models, and Qwen. Their contributions make it possible to build an end-to-end research assistant from locally hosted machine learning components.
+
 <div align="center">
 
-**SciLitRAG**<br/>
-*Making scientific literature easier to search, explore, and understand.*
+**SciLitRAG** — Making scientific literature easier to search, explore, and understand.
 
 </div>
