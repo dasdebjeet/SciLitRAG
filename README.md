@@ -15,7 +15,7 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 <img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
 <img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
 
-<br/><br/>
+<br/>
 
 [Features](#key-features) &nbsp;·&nbsp;
 [Architecture](#system-architecture) &nbsp;·&nbsp;
@@ -24,36 +24,16 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 [API](#api-reference) &nbsp;·&nbsp;
 [Evaluation](#evaluation)
 
-<br/>
 
 <img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
 
-<br/><br/>
-
-<table>
-  <tr>
-    <td width="33%" align="center">
-      <img src="docs/images/scilitrag_conversations.png" alt="Conversation view with cited answers" width="100%" /><br/>
-      <sub><b>Conversations</b><br/>Cited, multi-turn answers</sub>
-    </td>
-    <td width="33%" align="center">
-      <img src="docs/images/scilitrag_paper_library.png" alt="Paper library" width="100%" /><br/>
-      <sub><b>Paper Library</b><br/>Browse and scope indexed papers</sub>
-    </td>
-    <td width="33%" align="center">
-      <img src="docs/images/scilitrag_paper_compare.png" alt="Side-by-side paper comparison" width="100%" /><br/>
-      <sub><b>Paper Comparison</b><br/>Ask across multiple papers</sub>
-    </td>
-  </tr>
-</table>
+<table border="0" cellspacing="0" cellpadding="8"> <tr> <td width="33%" align="center"> <img src="docs/images/scilitrag_conversations.png" alt="Conversation view with cited answers" width="100%" /><br/> <sub><b>Conversations</b><br/>Cited, multi-turn answers</sub> </td> <td width="33%" align="center"> <img src="docs/images/scilitrag_paper_library.png" alt="Paper library" width="100%" /><br/> <sub><b>Paper Library</b><br/>Browse and scope indexed papers</sub> </td> <td width="33%" align="center"> <img src="docs/images/scilitrag_paper_compare.png" alt="Side-by-side paper comparison" width="100%" /><br/> <sub><b>Paper Comparison</b><br/>Ask across multiple papers</sub> </td> </tr> </table> </div>
 
 </div>
 
 <br><br>
 
 ## Overview
-
----
 
 SciLitRAG is a research-paper question-answering system built to make scientific literature easier to explore. It combines sparse and dense retrieval, Reciprocal Rank Fusion (RRF), cross-encoder reranking, and a locally hosted language model to generate answers **grounded in retrieved evidence**.
 
@@ -84,49 +64,25 @@ Scientific papers hold valuable information, but finding relevant evidence acros
 
 ## Key Features
 
-<table>
-<tr>
-<td width="50%" valign="top">
+SciLitRAG pairs a hybrid retrieval pipeline with a conversational interface, so answers stay tied to the papers they come from.
 
-### Hybrid Retrieval
-- **BM25** finds passages by lexical relevance and term matching.
-- **Dense retrieval** finds conceptually related passages via semantic embeddings.
-- **RRF** merges both rankings for stronger candidate retrieval.
+### Retrieval and Ranking
 
-### Cross-Encoder Reranking
-Scores query–passage relevance jointly rather than relying on independent embedding similarity, giving a second-stage refinement of the initial results.
+- **Hybrid retrieval:** BM25 matches passages by lexical relevance and exact terminology, while dense retrieval finds conceptually related passages through semantic embeddings. Reciprocal Rank Fusion (RRF) merges both rankings into a stronger candidate set.
+- **Cross-encoder reranking:** A second-stage cross-encoder scores query-passage relevance jointly, rather than relying only on independent embedding similarity, to refine the initial results.
+- **Evidence-grounded generation:** Retrieved passages are assembled into the model's context, which is designed to prioritize that evidence and to return source references for inspection.
 
-### Evidence-Grounded Generation
-Retrieved passages are assembled into context that the model is designed to prioritize, with source references so users can inspect the supporting material.
+### Conversation and Documents
 
-### Multi-Turn Conversations
-Ask follow-up questions in an ongoing conversation. History is passed into the QA workflow to keep context.
+- **Multi-turn conversations:** Ask follow-up questions in an ongoing session. Conversation history is passed into the question-answering workflow to preserve context.
+- **Paper comparison:** Select multiple indexed papers and ask questions that require comparing their content.
+- **PDF uploads:** Upload a research PDF and use it as the document scope for a conversation, with no need for it to be in the pre-indexed collection. Uploads are limited to **25 MB** per PDF.
+- **Persistent chat history:** Conversations are saved in the frontend so you can revisit them at any time.
 
-</td>
-<td width="50%" valign="top">
+### Transparency and Deployment
 
-### Paper Comparison
-Select multiple indexed papers and ask questions that require comparing their content.
-
-### PDF Uploads
-Upload a research PDF and use it as the document scope for a conversation, with no need for it to be in the pre-indexed collection.
-
-> **Upload limit:** 25 MB per PDF.
-
-### Persistent Chat History
-Conversations are saved in the frontend so you can revisit them.
-
-### Source Citations
-Responses can include retrieved passages, supporting excerpts, and links to the corresponding arXiv papers where available.
-
-### Local Inference
-Generation runs on a locally hosted **Qwen3-14B**, so you don't depend on a hosted LLM API.
-
-</td>
-</tr>
-</table>
-
----
+- **Source citations:** Responses can include the retrieved passages, supporting excerpts, and links to the corresponding arXiv papers where available.
+- **Local inference:** Generation runs on a locally hosted **Qwen3-14B** model, so you do not depend on a third-party LLM API.
 
 ## System Architecture
 
@@ -175,7 +131,6 @@ flowchart TB
 | **Context Builder** | Selects and assembles evidence for generation |
 | **Qwen3-14B** | Locally hosted response generation |
 
----
 
 ## RAG Pipeline
 
@@ -238,7 +193,6 @@ flowchart TD
 | **Context selection** | Adaptive selection | Chooses relevant passages within the available context budget |
 | **Generation** | Qwen3-14B | Formulates a response from the selected evidence |
 
----
 
 ## Technology Stack
 
@@ -259,12 +213,8 @@ flowchart TD
 | **GPU acceleration** | CUDA |
 | **Infrastructure** | Docker Desktop |
 
----
 
 ## Project Structure
-
-<details>
-<summary><b>Click to expand the repository layout</b></summary>
 
 <br/>
 
@@ -311,9 +261,6 @@ SciLitRAG/
 └── README.md
 ```
 
-</details>
-
----
 
 ## Installation
 
@@ -356,10 +303,6 @@ Create the environment configuration using the project's expected variable names
 - Required model and data directories
 - Any application-specific configuration
 
-> [!WARNING]
-> Never commit credentials or machine-specific secrets to version control.
-
----
 
 ## Running the Application
 
@@ -406,10 +349,11 @@ npm run dev -- --host 0.0.0.0
 | Swagger Documentation | `http://127.0.0.1:8000/docs` |
 | Qdrant | `http://localhost:16333` |
 
+<br>
+
 > [!NOTE]
 > The local language model runtime must also be running and reachable using the configuration the backend expects.
 
----
 
 ## Using SciLitRAG
 
@@ -462,7 +406,6 @@ Saved conversations are available through the conversation interface. The applic
 
 </details>
 
----
 
 ## API Reference
 
@@ -506,7 +449,6 @@ After starting the backend, access:
 
 Swagger UI provides the request schemas, parameters, response models, and an interface for testing the available endpoints directly.
 
----
 
 ## Evaluation
 
@@ -539,12 +481,16 @@ Adaptive context selection compared with a fixed top-10 policy:
 
 Adaptive selection used approximately **25.7% fewer context tokens** in this evaluation, suggesting that choosing a smaller set of relevant passages can reduce context size without relying on a fixed passage count.
 
+<br>
+
 > [!NOTE]
 > These results are specific to the evaluated benchmark and do not establish that adaptive selection is universally optimal.
 
 ### 3. Answer Quality
 
 A manual review covered eight generated answers (four research questions × two context selection policies). The reviewed answers were generally sound in the evaluated examples.
+
+<br>
 
 > [!IMPORTANT]
 > The answer-quality evaluation is limited in size. A larger benchmark and more systematic evaluation are needed before making broader claims about answer correctness, factual consistency, or hallucination resistance.
@@ -553,7 +499,6 @@ A manual review covered eight generated answers (four research questions × two 
 
 The current evaluation is an initial assessment of the pipeline. Results should be read in the context of the benchmark size and methodology, and are not a substitute for large-scale or domain-expert validation.
 
----
 
 ## Limitations
 
@@ -577,7 +522,6 @@ The current evaluation is an initial assessment of the pipeline. Results should 
 - Broaden support for scientific document formats and metadata
 - Improve observability, logging, and performance monitoring
 
----
 
 ## Acknowledgements
 
