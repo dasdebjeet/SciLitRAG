@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use SciLitRAG in your research, software, or academic work, please cite it using the metadata below."
+type: software
+
+title: "SciLitRAG"
+abstract: >-
+  SciLitRAG is a research-paper question-answering system built using
+  retrieval-augmented generation. It combines hybrid retrieval, reciprocal
+  rank fusion, cross-encoder reranking, adaptive context selection, and
+  locally hosted large language model inference.
+
+authors:
+  - family-names: "Das"
+    given-names: "Debjeet"
+
+repository-code: "https://github.com/dasdebjeet/SciLitRAG"
+
+license: MIT
+
+keywords:
+  - retrieval-augmented generation
+  - research paper retrieval
+  - large language models
+  - hybrid search
+  - information retrieval
+  - question answering
