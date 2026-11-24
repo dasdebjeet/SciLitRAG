@@ -6,12 +6,14 @@
 
 Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally hosted LLM
 
-<img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12" />
-<img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
-<img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
-<img src="https://img.shields.io/badge/Qdrant-Vector_DB-DC244C?style=for-the-badge&logo=qdrant&logoColor=white" alt="Qdrant" />
-<img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
-<img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
+<p>
+  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12" />
+  <img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/Qdrant-Vector_DB-DC244C?style=for-the-badge&logo=qdrant&logoColor=white" alt="Qdrant" />
+  <img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
+  <img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
+</p>
 
 [Features](#key-features) &nbsp;·&nbsp;
 [Architecture](#system-architecture) &nbsp;·&nbsp;
@@ -20,9 +22,7 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 [API](#api-reference) &nbsp;·&nbsp;
 [Evaluation](#evaluation)
 
-<br/>
 <br>
-
 <img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
 
 <table border="0" cellspacing="0" cellpadding="8">
