@@ -2,100 +2,330 @@
 
 # SciLitRAG
 
-### A research-paper assistant powered by hybrid retrieval, cross-encoder reranking, and locally hosted language models
+### Ask questions. Get answers grounded in research papers.
 
-<p>
-  <img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12" />
-  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
-  <img src="https://img.shields.io/badge/CUDA-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="CUDA" />
-  <img src="https://img.shields.io/badge/Qdrant-DC244C?style=for-the-badge&logo=qdrant&logoColor=white" alt="Qdrant" />
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-</p>
+Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally hosted LLM
 
-<p>
-  <img src="https://img.shields.io/badge/uv-managed-DE5FE9?style=flat-square" alt="uv" />
-  <img src="https://img.shields.io/badge/LLM-Qwen3--14B-6C47FF?style=flat-square" alt="Qwen3-14B" />
-  <img src="https://img.shields.io/badge/status-active%20development-orange?style=flat-square" alt="Status" />
-</p>
+<br/>
 
-[Features](#key-features) •
-[Architecture](#architecture) •
-[Quick Start](#quick-start) •
-[Usage](#usage) •
-[Evaluation](#evaluation) •
-[Roadmap](#roadmap)
+<img src="https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.12" />
+<img src="https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+<img src="https://img.shields.io/badge/React-Frontend-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+<img src="https://img.shields.io/badge/Qdrant-Vector_DB-DC244C?style=for-the-badge&logo=qdrant&logoColor=white" alt="Qdrant" />
+<img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
+<img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
 
-<br>
-<img src="docs/images/scilitrag_ui.png" alt="SciLitRAG Application UI" width="100%">
-<br>
+<br/><br/>
+
+[Features](#key-features) &nbsp;·&nbsp;
+[Architecture](#system-architecture) &nbsp;·&nbsp;
+[Pipeline](#rag-pipeline) &nbsp;·&nbsp;
+[Installation](#installation) &nbsp;·&nbsp;
+[API](#api-reference) &nbsp;·&nbsp;
+[Evaluation](#evaluation)
+
+<br/>
+
+<img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
+
+<br/><br/>
+
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_conversations.png" alt="Conversation view with cited answers" width="100%" /><br/>
+      <sub><b>Conversations</b><br/>Cited, multi-turn answers</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_paper_library.png" alt="Paper library" width="100%" /><br/>
+      <sub><b>Paper Library</b><br/>Browse and scope indexed papers</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_paper_compare.png" alt="Side-by-side paper comparison" width="100%" /><br/>
+      <sub><b>Paper Comparison</b><br/>Ask across multiple papers</sub>
+    </td>
+  </tr>
+</table>
 
 </div>
 
+<br><br>
+
 ## Overview
 
-**SciLitRAG** is a retrieval-augmented generation (RAG) system that helps researchers search, explore, and synthesize information from scientific literature.
+---
 
-It retrieves relevant passages from research papers, reranks them by relevance, and generates answers **grounded in retrieved evidence, with source attribution**.
+SciLitRAG is a research-paper question-answering system built to make scientific literature easier to explore. It combines sparse and dense retrieval, Reciprocal Rank Fusion (RRF), cross-encoder reranking, and a locally hosted language model to generate answers **grounded in retrieved evidence**.
+
+The project implements an end-to-end Retrieval-Augmented Generation (RAG) workflow, from paper ingestion and indexing to contextual retrieval and conversational question answering. Rather than relying on semantic similarity alone, SciLitRAG blends complementary retrieval strategies and reranks candidate passages before anything reaches the language model.
+
+## At a Glance
+
+| | |
+|---|---|
+| **Retrieval** | BM25 (sparse) + BAAI/bge-m3 (dense) fused with RRF |
+| **Reranking** | BAAI/bge-reranker-v2-m3 cross-encoder |
+| **Generation** | Local Qwen3-14B, no third-party LLM API required |
+| **Vector store** | Qdrant |
+| **Backend / Frontend** | FastAPI · React + TypeScript + Vite |
+| **Interaction** | Multi-turn chat, paper comparison, PDF upload (up to 25 MB) |
+| **Verification** | Source citations with excerpts and arXiv links where available |
+
+## Overview
+
+Scientific papers hold valuable information, but finding relevant evidence across many documents is slow. Keyword search can miss semantically relevant passages, and standalone language models can produce unsupported or fabricated claims. SciLitRAG addresses both with a **retrieval-first architecture**:
+
+1. **Retrieve** passages using both lexical and semantic search.
+2. **Fuse** the rankings with Reciprocal Rank Fusion.
+3. **Rerank** candidates with a cross-encoder.
+4. **Select** the most relevant evidence to build the generation context.
+5. **Generate** an evidence-grounded answer with a local language model.
+6. **Cite** sources so every answer can be verified.
 
 ## Key Features
 
-| Feature | Description |
-|---|---|
-| **Corpus ingestion** | Fetch and process research papers from arXiv |
-| **Semantic search** | Retrieve relevant passages using dense vector embeddings |
-| **Keyword search** | Capture exact terminology and technical keywords with BM25 |
-| **Hybrid retrieval** | Combine keyword and semantic retrieval via Reciprocal Rank Fusion (RRF) |
-| **Cross-encoder reranking** | Improve passage relevance before generation |
-| **Evidence-grounded generation** | Generate research answers with a locally hosted language model |
-| **Evaluation suite** | Benchmark retrieval, context selection, and answer quality |
+<table>
+<tr>
+<td width="50%" valign="top">
 
-## Architecture
+### Hybrid Retrieval
+- **BM25** finds passages by lexical relevance and term matching.
+- **Dense retrieval** finds conceptually related passages via semantic embeddings.
+- **RRF** merges both rankings for stronger candidate retrieval.
+
+### Cross-Encoder Reranking
+Scores query–passage relevance jointly rather than relying on independent embedding similarity, giving a second-stage refinement of the initial results.
+
+### Evidence-Grounded Generation
+Retrieved passages are assembled into context that the model is designed to prioritize, with source references so users can inspect the supporting material.
+
+### Multi-Turn Conversations
+Ask follow-up questions in an ongoing conversation. History is passed into the QA workflow to keep context.
+
+</td>
+<td width="50%" valign="top">
+
+### Paper Comparison
+Select multiple indexed papers and ask questions that require comparing their content.
+
+### PDF Uploads
+Upload a research PDF and use it as the document scope for a conversation, with no need for it to be in the pre-indexed collection.
+
+> **Upload limit:** 25 MB per PDF.
+
+### Persistent Chat History
+Conversations are saved in the frontend so you can revisit them.
+
+### Source Citations
+Responses can include retrieved passages, supporting excerpts, and links to the corresponding arXiv papers where available.
+
+### Local Inference
+Generation runs on a locally hosted **Qwen3-14B**, so you don't depend on a hosted LLM API.
+
+</td>
+</tr>
+</table>
+
+---
+
+## System Architecture
+
+SciLitRAG consists of a React frontend, a FastAPI backend, a retrieval and generation pipeline, and supporting infrastructure.
+
+```mermaid
+flowchart TB
+    U["User"] --> FE["React Frontend"]
+    FE --> API["FastAPI Backend"]
+
+    API --> ROUTER["Request / Conversation Handling"]
+
+    ROUTER -->|Indexed Papers| RET["RAG Pipeline"]
+    ROUTER -->|Uploaded PDF| PDF["PDF Processing / Document Context"]
+    ROUTER -->|Paper Comparison| RET
+
+    RET --> BM25["BM25 Retrieval"]
+    RET --> DENSE["Dense Retrieval"]
+
+    BM25 --> RRF["Reciprocal Rank Fusion"]
+    DENSE --> RRF
+
+    RRF --> RERANK["Cross-Encoder Reranking"]
+    RERANK --> CTX["Context Selection"]
+
+    CTX --> LLM["Local Qwen3-14B"]
+    PDF --> LLM
+
+    QDRANT[("Qdrant Vector Database")] --> DENSE
+    LLM --> RESP["Answer + Source References"]
+    RESP --> API
+    API --> FE
+```
+
+### Main Components
+
+| Component | Responsibility |
+|---|---|
+| **React Frontend** | UI, conversations, paper selection, uploads, answer rendering |
+| **FastAPI** | HTTP API and application orchestration |
+| **BM25 Retriever** | Lexical retrieval |
+| **Dense Retriever** | Semantic retrieval using embeddings |
+| **Qdrant** | Vector storage and similarity search |
+| **Reciprocal Rank Fusion** | Combines sparse and dense rankings |
+| **Cross-Encoder** | Refines candidate passage rankings |
+| **Context Builder** | Selects and assembles evidence for generation |
+| **Qwen3-14B** | Locally hosted response generation |
+
+---
+
+## RAG Pipeline
+
+The workflow has two major stages: offline ingestion and online retrieval + generation.
+
+### 1. Offline Ingestion
+
+Papers are collected, processed, embedded, and indexed before the retrieval system uses them.
 
 ```mermaid
 flowchart TD
-    A["Research Papers (arXiv)"] --> B["PDF Extraction"]
-    B --> C["Text Chunking"]
-    C --> D["BM25 Index"]
-    C --> E["Dense Embeddings"]
-    E --> F[("Qdrant")]
-    D --> G["Hybrid Retrieval"]
-    F --> G
-    G --> H["Reciprocal Rank Fusion"]
-    H --> I["Cross-Encoder Reranking"]
-    I --> J["Context Builder"]
-    J --> K["Local LLM (Qwen3-14B)"]
-    K --> L["Evidence-Grounded Answer"]
-
-    style A fill:#e8f0fe,stroke:#4285f4,color:#000
-    style F fill:#fde8ec,stroke:#dc244c,color:#000
-    style K fill:#efe8ff,stroke:#6c47ff,color:#000
-    style L fill:#e6f4ea,stroke:#34a853,color:#000
+    A["Research Papers"] --> B["Paper Fetching"]
+    B --> C["PDF Validation"]
+    C --> D["Text Extraction"]
+    D --> E["Text Chunking"]
+    E --> F["Metadata Association"]
+    F --> G["Embedding Generation"]
+    G --> H["Qdrant Indexing"]
+    F --> I["BM25 Index Preparation"]
 ```
+
+- Fetch research papers from arXiv
+- Validate downloaded PDFs
+- Extract text and document metadata
+- Split content into smaller passages
+- Generate dense embeddings with **BAAI/bge-m3**
+- Index vectors and metadata in **Qdrant**
+- Prepare the lexical data used by **BM25**
+
+### 2. Online Retrieval & Generation
+
+When a user submits a question, the application retrieves evidence and generates an answer.
+
+```mermaid
+flowchart TD
+    A["User Query"] --> B["Query Processing"]
+
+    B --> C["BM25 Retrieval"]
+    B --> D["Dense Retrieval"]
+
+    C --> E["Reciprocal Rank Fusion"]
+    D --> E
+
+    E --> F["Candidate Passages"]
+    F --> G["Cross-Encoder Reranking"]
+    G --> H["Context Selection"]
+    H --> I["Context Construction"]
+    I --> J["Local LLM Generation"]
+    J --> K["Answer + Citations"]
+```
+
+### Retrieval Strategy
+
+| Stage | Technique | Purpose |
+|---|---|---|
+| **Sparse retrieval** | BM25 | Lexical matching, which is useful for specific terminology, technical expressions, and named concepts |
+| **Dense retrieval** | BAAI/bge-m3 | Semantic matching that finds relevant content even when wording differs from the query |
+| **Rank fusion** | Reciprocal Rank Fusion | Combines the sparse and dense rankings |
+| **Reranking** | BAAI/bge-reranker-v2-m3 | Scores query–passage pairs to refine the candidate ranking |
+| **Context selection** | Adaptive selection | Chooses relevant passages within the available context budget |
+| **Generation** | Qwen3-14B | Formulates a response from the selected evidence |
+
+---
 
 ## Technology Stack
 
-| Component | Technology |
+| Category | Technology |
 |---|---|
 | **Language** | Python 3.12 |
-| **Dependency management** | [uv](https://docs.astral.sh/uv/) |
-| **PDF processing** | PyMuPDF |
-| **Embeddings** | `BAAI/bge-m3` |
-| **Keyword retrieval** | BM25 |
+| **Environment & dependencies** | uv |
+| **Backend** | FastAPI, Uvicorn |
+| **Frontend** | React, TypeScript, Vite |
+| **Document processing** | PyMuPDF |
+| **Sparse retrieval** | BM25 |
+| **Embedding model** | BAAI/bge-m3 |
 | **Vector database** | Qdrant |
-| **Retrieval fusion** | Reciprocal Rank Fusion |
-| **Reranker** | `BAAI/bge-reranker-v2-m3` |
+| **Rank fusion** | Reciprocal Rank Fusion |
+| **Reranking model** | BAAI/bge-reranker-v2-m3 |
 | **Language model** | Qwen3-14B |
 | **Deep learning** | PyTorch, Transformers |
 | **GPU acceleration** | CUDA |
+| **Infrastructure** | Docker Desktop |
 
-## Quick Start
+---
+
+## Project Structure
+
+<details>
+<summary><b>Click to expand the repository layout</b></summary>
+
+<br/>
+
+```text
+SciLitRAG/
+│
+├── data/
+│   ├── raw/                    # Downloaded research papers
+│   ├── processed/              # Extracted and processed documents
+│   ├── metadata/               # Paper and processing metadata
+│   └── evaluation/             # Evaluation datasets and results
+│
+├── src/
+│   └── scilitrag/
+│       ├── api/                # FastAPI application and endpoints
+│       ├── core/               # Shared configuration and utilities
+│       ├── retrieval/
+│       │   ├── bm25_retriever.py
+│       │   ├── dense_retriever.py
+│       │   ├── hybrid_retriever.py
+│       │   └── reranker.py
+│       │
+│       ├── generation/
+│       │   └── generator.py
+│       │
+│       └── pipeline/
+│           ├── answer_pipeline.py
+│           └── context_builder.py
+│
+├── frontend/                   # React application
+│
+├── scripts/
+│   ├── ingestion/              # Paper ingestion and indexing
+│   ├── evaluation/             # Retrieval and answer evaluation
+│   ├── optimization/           # Reranker optimization experiments
+│   ├── utilities/              # Validation and maintenance tools
+│   └── diagnostics/            # Pipeline and component diagnostics
+│
+├── tests/                      # Automated tests
+│
+├── compose.yaml                # Docker service configuration
+├── pyproject.toml              # Python project configuration
+├── uv.lock                     # Locked Python dependencies
+└── README.md
+```
+
+</details>
+
+---
+
+## Installation
 
 ### Prerequisites
 
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/)
-- Docker and Docker Compose
-- NVIDIA GPU with compatible CUDA support *(recommended for GPU inference)*
+- Windows 11 with WSL2 and Ubuntu
+- Python 3.12
+- [uv](https://github.com/astral-sh/uv) package manager
+- Node.js and npm
+- Docker Desktop
+- A CUDA-compatible NVIDIA GPU with appropriate drivers (for GPU-accelerated inference)
+- A local inference runtime with the configured Qwen3-14B model available
 
 ### 1. Clone the repository
 
@@ -104,85 +334,189 @@ git clone https://github.com/dasdebjeet/SciLitRAG.git
 cd SciLitRAG
 ```
 
-### 2. Install dependencies
+### 2. Install Python dependencies
 
 ```bash
 uv sync
 ```
 
-### 3. Start Qdrant
+### 3. Install frontend dependencies
 
 ```bash
-docker compose up -d
+cd frontend
+npm install
 ```
 
-Default Qdrant endpoint: `http://localhost:16333`
+### 4. Configure environment variables
 
-### 4. Prepare the research corpus
+Create the environment configuration using the project's expected variable names and values. Make sure the backend can reach:
 
-Run the ingestion workflow in order:
+- Qdrant
+- The local language model runtime
+- Required model and data directories
+- Any application-specific configuration
+
+> [!WARNING]
+> Never commit credentials or machine-specific secrets to version control.
+
+---
+
+## Running the Application
+
+SciLitRAG runs as separate frontend and backend development servers, with Qdrant managed through Docker Desktop.
+
+### 1. Start Docker Desktop
+
+Launch Docker Desktop and wait until the Docker Engine is running. Qdrant should then be available at `http://localhost:16333`.
+
+If the database is unavailable, verify the container is running:
 
 ```bash
-uv run python scripts/ingestion/fetch_papers.py
-uv run python scripts/ingestion/extract_text.py
-uv run python scripts/ingestion/chunk_pages.py
-uv run python scripts/ingestion/embed_chunks.py
-uv run python scripts/utilities/setup_qdrant.py
-uv run python scripts/ingestion/ingest_qdrant.py
+docker ps
 ```
 
-> [!TIP]
-> The scripts support additional configuration through command-line arguments. Use `--help` where available to inspect options.
+If it isn't, inspect `compose.yaml` and start the configured service.
+
+### 2. Start the backend
+
+In a WSL terminal:
+
+```bash
+cd /mnt/d/SciLitRAG
+
+uv run uvicorn src.scilitrag.api.main:app --host 127.0.0.1 --port 8000
+```
+
+### 3. Start the frontend
+
+In a second WSL terminal:
+
+```bash
+cd /mnt/d/SciLitRAG/frontend
+
+npm run dev -- --host 0.0.0.0
+```
+
+### Development Services
+
+| Service | Address |
+|---|---|
+| React / Vite Frontend | `http://localhost:5173` |
+| FastAPI Backend | `http://127.0.0.1:8000` |
+| Swagger Documentation | `http://127.0.0.1:8000/docs` |
+| Qdrant | `http://localhost:16333` |
 
 > [!NOTE]
-> The corpus, generated embeddings, Qdrant collection, and local language-model weights must be prepared or made available separately. `uv sync` installs Python dependencies; it does **not** download the complete research corpus or model weights.
+> The local language model runtime must also be running and reachable using the configuration the backend expects.
 
-## Usage
+---
 
-Ask a research question using the complete retrieval and generation pipeline:
+## Using SciLitRAG
 
-```bash
-uv run scilitrag-answer --query "How do reversible neural networks improve image reconstruction?"
-```
+<details open>
+<summary><b>Ask questions about research papers</b></summary>
 
-<details>
-<summary><b>Optional parameters</b></summary>
+<br/>
 
-<br>
-
-```bash
-uv run scilitrag-answer \
-    --query "Your research question" \
-    --retrieval-k 20 \
-    --top-k 5 \
-    --max-context-tokens 6000 \
-    --max-new-tokens 1200 \
-    --device cuda
-```
+1. Open the frontend in your browser.
+2. Start a new conversation.
+3. Select the relevant indexed paper scope, if required.
+4. Enter a research question.
+5. Review the generated response and its citations.
+6. Ask follow-up questions to continue the conversation.
 
 </details>
 
 <details>
-<summary><b>Individual retrieval components</b></summary>
+<summary><b>Compare research papers</b></summary>
 
-<br>
+<br/>
 
-```bash
-uv run scilitrag-bm25 --help
-uv run scilitrag-dense --help
-uv run scilitrag-hybrid --help
-uv run scilitrag-rerank --help
-```
+1. Open the paper selection interface.
+2. Select the papers you want to compare.
+3. Submit a comparative question.
+4. Review the response and its supporting sources.
+
+Useful for questions about similarities, differences, methodologies, findings, and other paper-specific details.
 
 </details>
+
+<details>
+<summary><b>Upload a research paper</b></summary>
+
+<br/>
+
+1. Start or open a conversation.
+2. Upload a PDF (up to **25 MB**).
+3. Ask questions about the uploaded paper.
+4. Review the response and available supporting references.
+
+</details>
+
+<details>
+<summary><b>Review previous conversations</b></summary>
+
+<br/>
+
+Saved conversations are available through the conversation interface. The application also provides a paper library and theme preferences.
+
+</details>
+
+---
+
+## API Reference
+
+SciLitRAG exposes its functionality through a REST API built with FastAPI. The endpoints are organized into three groups: Health, Research, and Uploads.
+
+### Health
+
+These endpoints provide application health and readiness information.
+
+| Method | Endpoint | Description |
+|:---:|---|---|
+| `GET` | `/health` | Check API liveness |
+| `GET` | `/health/ready` | Check API readiness |
+
+### Research
+
+These endpoints support research question answering, paper discovery, and comparative analysis.
+
+| Method | Endpoint | Description |
+|:---:|---|---|
+| `POST` | `/api/v1/ask` | Answer a research question |
+| `GET` | `/api/v1/papers` | List available research papers |
+| `POST` | `/api/v1/compare` | Compare research papers |
+
+### Uploads
+
+This endpoint allows users to upload research documents.
+
+| Method | Endpoint | Description |
+|:---:|---|---|
+| `POST` | `/api/v1/uploads` | Upload a research paper |
+
+### Interactive API Documentation
+
+FastAPI automatically generates interactive API documentation using OpenAPI and Swagger UI.
+
+After starting the backend, access:
+
+- **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **OpenAPI schema:** [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json)
+
+Swagger UI provides the request schemas, parameters, response models, and an interface for testing the available endpoints directly.
+
+---
 
 ## Evaluation
 
-SciLitRAG has been evaluated on a manually verified benchmark of **15 research questions** (13 answerable, 2 unanswerable).
+SciLitRAG was evaluated on a manually verified benchmark of **15 research questions** (13 answerable, 2 unanswerable), examining retrieval quality, reranking, context selection, and answer quality.
 
-### Retrieval
+### 1. Retrieval Performance
 
-| Metric | Hybrid | Reranked |
+Hybrid retrieval compared with the reranked results:
+
+| Metric | Hybrid Retrieval | After Reranking |
 |---|---:|---:|
 | Paper Recall@5 | 1.000 | 1.000 |
 | Paper Recall@10 | 1.000 | 1.000 |
@@ -192,124 +526,68 @@ SciLitRAG has been evaluated on a manually verified benchmark of **15 research q
 | Chunk MRR@10 | 0.6564 | **0.7564** |
 | Chunk nDCG@5 | 0.5510 | **0.5771** |
 
-The reranker improves chunk-level ranking quality, although individual questions still exhibit retrieval weaknesses.
+The relevant paper was consistently retrieved within the evaluated cutoffs. At the chunk level, reranking improved the measured metrics, particularly MRR@10, highlighting the difference between finding the right paper and finding the most relevant passages within it.
 
-### Context Selection
+### 2. Context Selection
 
-An adaptive context-selection strategy was compared against a fixed top-10 context policy:
+Adaptive context selection compared with a fixed top-10 policy:
 
-| Metric | Adaptive | Fixed top-10 |
+| Metric | Adaptive Selection | Fixed Top-10 |
 |---|---:|---:|
-| Avg. context tokens | **3,502** | 4,711 |
-| Avg. selected passages | **7.54** | 10 |
+| Average context tokens | **3,502** | 4,711 |
+| Average selected passages | **7.54** | 10 |
 
-Approximately **25.7% fewer context tokens**.
+Adaptive selection used approximately **25.7% fewer context tokens** in this evaluation, suggesting that choosing a smaller set of relevant passages can reduce context size without relying on a fixed passage count.
 
 > [!NOTE]
-> These results reflect the current benchmark and do not establish adaptive selection as universally optimal.
+> These results are specific to the evaluated benchmark and do not establish that adaptive selection is universally optimal.
 
-### Answer Quality
+### 3. Answer Quality
 
-An initial manual review covered eight generated answers across four questions and two context-selection policies. Outputs were generally sound, but broader evaluation is needed before drawing strong conclusions.
+A manual review covered eight generated answers (four research questions × two context selection policies). The reviewed answers were generally sound in the evaluated examples.
 
-## Project Structure
+> [!IMPORTANT]
+> The answer-quality evaluation is limited in size. A larger benchmark and more systematic evaluation are needed before making broader claims about answer correctness, factual consistency, or hallucination resistance.
 
-<details>
-<summary><b>Show directory tree</b></summary>
+### Evaluation Scope
 
-```text
-SciLitRAG/
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   ├── metadata/
-│   └── evaluation/
-│
-├── src/
-│   └── scilitrag/
-│       ├── core/
-│       │   └── paths.py
-│       ├── retrieval/
-│       │   ├── bm25_retriever.py
-│       │   ├── dense_retriever.py
-│       │   ├── hybrid_retriever.py
-│       │   └── reranker.py
-│       ├── generation/
-│       │   └── generator.py
-│       └── pipeline/
-│           ├── answer_pipeline.py
-│           └── context_builder.py
-│
-├── scripts/
-│   ├── ingestion/
-│   │   ├── fetch_papers.py
-│   │   ├── extract_text.py
-│   │   ├── chunk_pages.py
-│   │   ├── embed_chunks.py
-│   │   └── ingest_qdrant.py
-│   ├── evaluation/
-│   │   ├── generate_benchmark.py
-│   │   ├── evaluate_retrieval.py
-│   │   ├── evaluate_context_selection.py
-│   │   └── evaluate_answer_quality.py
-│   ├── optimization/
-│   │   └── reranker/
-│   │       ├── benchmark_reranker.py
-│   │       ├── export_reranker_onnx.py
-│   │       ├── benchmark_reranker_onnx.py
-│   │       ├── benchmark_reranker_onnx_execution.py
-│   │       └── benchmark_reranker_onnx_threads.py
-│   ├── utilities/
-│   │   ├── validate_papers.py
-│   │   ├── fix_paper_metadata.py
-│   │   ├── setup_qdrant.py
-│   │   ├── update_qdrant_metadata.py
-│   │   └── verify_candidate_questions.py
-│   └── diagnostics/
-│       ├── test_context_builder.py
-│       └── test_qdrant_search.py
-│
-├── tests/
-├── compose.yaml
-├── pyproject.toml
-├── uv.lock
-└── README.md
-```
+The current evaluation is an initial assessment of the pipeline. Results should be read in the context of the benchmark size and methodology, and are not a substitute for large-scale or domain-expert validation.
 
-</details>
+---
 
-**Design principles**
+## Limitations
 
-| Directory | Purpose |
+| Area | Detail |
 |---|---|
-| `src/scilitrag/` | Reusable application logic |
-| `scripts/` | Executable workflows, evaluation tools, utilities, and diagnostics |
-| `data/` | Research corpus and evaluation artifacts |
+| **Evaluation scale** | The benchmark contains only 15 research questions |
+| **Answer-quality validation** | Manual review covers a relatively small number of generated responses |
+| **Document extraction** | PDF extraction quality varies with structure, formatting, tables, and figures |
+| **Retrieval coverage** | Depends on the indexed collection and the quality of its extracted text and metadata |
+| **Local inference** | Running a 14B-parameter model locally requires suitable hardware and memory |
+| **Domain generalization** | Performance across all scientific disciplines has not been established |
+| **Citation verification** | Retrieved references should still be checked against the original papers |
 
-## Current Limitations
+## Future Improvements
 
-- The benchmark is relatively small and requires broader evaluation.
-- Retrieval quality varies across individual research questions.
-- The system uses a local language model, so inference performance is hardware-dependent.
-- The API and interactive user interface are planned extensions.
+- Expand the benchmark with a larger, more diverse set of research questions
+- Introduce more systematic answer-quality and faithfulness evaluation
+- Improve retrieval and context selection through further experiments
+- Evaluate extraction strategies for tables, figures, and complex layouts
+- Explore further inference and reranking optimizations
+- Broaden support for scientific document formats and metadata
+- Improve observability, logging, and performance monitoring
 
-## Roadmap
+---
 
-- [ ] FastAPI backend for serving the RAG pipeline
-- [ ] React-based research assistant interface
-- [ ] Interactive source and evidence exploration
-- [ ] Cross-paper comparison and synthesis
-- [ ] Expanded retrieval and answer-quality benchmarks
-- [ ] Improved observability and production deployment
+## Acknowledgements
 
-## Project Status
-
-The core **ingestion, hybrid retrieval, reranking, generation, and initial evaluation** workflows are implemented. The project is now transitioning toward a service-oriented backend and an interactive research interface.
+SciLitRAG builds upon several open-source technologies and pretrained models, including **Qdrant**, **PyTorch**, **FastAPI**, **BAAI** embedding and reranking models, and **Qwen**. Their contributions make it possible to build an end-to-end research assistant from locally hosted machine learning components.
 
 ---
 
 <div align="center">
 
-**SciLitRAG — Making scientific literature easier to search, understand, and connect.**
+**SciLitRAG**<br/>
+*Making scientific literature easier to search, explore, and understand.*
 
 </div>
