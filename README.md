@@ -15,7 +15,7 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 <img src="https://img.shields.io/badge/PyTorch-Deep_Learning-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch" />
 <img src="https://img.shields.io/badge/LLM-Local_Inference-6E56CF?style=for-the-badge" alt="Local LLM" />
 
-<br/>
+<br><br>
 
 [Features](#key-features) &nbsp;·&nbsp;
 [Architecture](#system-architecture) &nbsp;·&nbsp;
@@ -27,13 +27,26 @@ Hybrid retrieval &nbsp;·&nbsp; Cross-encoder reranking &nbsp;·&nbsp; Locally h
 
 <img src="docs/images/scilitrag.png" alt="SciLitRAG main interface" width="100%" />
 
-<table border="0" cellspacing="0" cellpadding="8"> <tr> <td width="33%" align="center"> <img src="docs/images/scilitrag_conversations.png" alt="Conversation view with cited answers" width="100%" /><br/> <sub><b>Conversations</b><br/>Cited, multi-turn answers</sub> </td> <td width="33%" align="center"> <img src="docs/images/scilitrag_paper_library.png" alt="Paper library" width="100%" /><br/> <sub><b>Paper Library</b><br/>Browse and scope indexed papers</sub> </td> <td width="33%" align="center"> <img src="docs/images/scilitrag_paper_compare.png" alt="Side-by-side paper comparison" width="100%" /><br/> <sub><b>Paper Comparison</b><br/>Ask across multiple papers</sub> </td> </tr> </table> </div>
+<table border="0" cellspacing="0" cellpadding="8">
+  <tr>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_conversations.png" alt="Conversation view with cited answers" width="100%" /><br/>
+      <sub><b>Conversations</b><br/>Cited, multi-turn answers</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_paper_library.png" alt="Paper library" width="100%" /><br/>
+      <sub><b>Paper Library</b><br/>Browse and scope indexed papers</sub>
+    </td>
+    <td width="33%" align="center">
+      <img src="docs/images/scilitrag_paper_compare.png" alt="Side-by-side paper comparison" width="100%" /><br/>
+      <sub><b>Paper Comparison</b><br/>Ask across multiple papers</sub>
+    </td>
+  </tr>
+</table>
 
 </div>
 
-<br><br>
-
-## Overview
+<br>
 
 SciLitRAG is a research-paper question-answering system built to make scientific literature easier to explore. It combines sparse and dense retrieval, Reciprocal Rank Fusion (RRF), cross-encoder reranking, and a locally hosted language model to generate answers **grounded in retrieved evidence**.
 
